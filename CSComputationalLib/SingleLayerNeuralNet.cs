@@ -7,7 +7,7 @@ using System.Collections;
 
 namespace ComputationLib
 {
-    public class cSingleLayerNeuralNet
+    public class SingleLayerNeuralNet
     {
         int _numOfInputVariables;
         int _numOfHiddenNodes;
@@ -20,7 +20,7 @@ namespace ComputationLib
         double _currentOutput;
 
         // instantiation
-        public cSingleLayerNeuralNet(int numOfInputVariables, int numOfHiddenNodes)
+        public SingleLayerNeuralNet(int numOfInputVariables, int numOfHiddenNodes)
         {
             _numOfInputVariables = numOfInputVariables;
             _numOfHiddenNodes = numOfHiddenNodes;

@@ -4,4 +4,17 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MathNet.Numerics" Version="3.20.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="CSRandomVariateLib">
+      <HintPath>..\..\CSRandomVariateLib\CSRandomVariateLib\bin\Release\netcoreapp2.0\CSRandomVariateLib.dll</HintPath>
+    </Reference>
+    <Reference Include="CSSimulationLib">
+      <HintPath>..\..\CSSimulationLib\CSSimulationLib\bin\Release\netcoreapp2.0\CSSimulationLib.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

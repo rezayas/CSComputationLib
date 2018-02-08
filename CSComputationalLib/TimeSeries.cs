@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ComputationLib
 {
-    public class cTimeSeries
+    public class TimeSeries
     {
         // Variables
         #region Variables
@@ -36,7 +36,7 @@ namespace ComputationLib
         /// Creates time series (observations over observation periods will NOT be aggregated)
         /// </summary>
         /// <param name="numOfPastObsPeriodsToStore"> Specify the number of past observations to store </param>        
-        public cTimeSeries(string name, int numOfObsPeriods, enumPredictionModel predictionModel)
+        public TimeSeries(string name, int numOfObsPeriods, enumPredictionModel predictionModel)
         {
             _name = name;
             _predictionModel = predictionModel;
@@ -55,7 +55,7 @@ namespace ComputationLib
         /// <param name="numOfPastObsPeriodsToStore">Specify the number of past observation periods to store</param>
         /// <param name="numOfObsInEachObsPeriod">Specify the number of data to be aggregated in each observation period</param>
         /// <param name="predictionModel"></param>
-        public cTimeSeries(string name, int numOfObsPeriods, int numOfRecodingsInEachObsPeriod, enumPredictionModel predictionModel)
+        public TimeSeries(string name, int numOfObsPeriods, int numOfRecodingsInEachObsPeriod, enumPredictionModel predictionModel)
         {
             _name = name;
             _predictionModel = predictionModel;

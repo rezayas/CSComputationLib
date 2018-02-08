@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
 using System.Threading;
 using System.Threading.Tasks;
-using RandomNumberGeneratorLib;
+using CSRandomVariateLib;
 
 namespace ComputationLib
 {
@@ -407,12 +406,12 @@ namespace ComputationLib
         }
 
         // suffle an array 
-        public static void Shuffle<T>(ThreadSpecificRNG rng, T[] array)
+        public static void Shuffle<T>(RNG rng, T[] array)
         {
             int n = array.Length;
             while (n > 1)
             {
-                int k = rng.DiscreteUniform(n--);
+                int k = rng.Next(n--);
                 T temp = array[n];
                 array[n] = array[k];
                 array[k] = temp;

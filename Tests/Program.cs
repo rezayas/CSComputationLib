@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ComputationLib;
-using RandomNumberGeneratorLib;
+using CSRandomVariateLib;
 
 namespace TestComputationalLib
 {
@@ -12,8 +12,7 @@ namespace TestComputationalLib
     {
         static void Main(string[] args)
         {
-            ThreadSpecificRNG myRND = new ThreadSpecificRNG();
-            myRND.Reset(1);
+            RNG myRND = new RNG(1);
 
             var array = new double[] { 1.0, 2.0, 3.0, 4.0, 5.0 };
 

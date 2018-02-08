@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
 using MatrixLibrary;
 
 namespace ComputationLib
@@ -190,7 +189,7 @@ namespace ComputationLib
                 tempMatrix = Matrix.Transpose(mat_x) * _matB * mat_x;
                 if (double.IsNaN(tempMatrix[0, 0]) || double.IsInfinity(tempMatrix[0, 0]))
                 {
-                    MessageBox.Show("Error in OLS updating: gamma is either not a number or infinity.");
+                    Console.WriteLine("Error in OLS updating: gamma is either not a number or infinity.");
                     // make the matrix X identity matrix
                     for (int i = 0; i < _numOfColumns; ++i)
                         for (int j = 0; j < _numOfColumns; ++j)
@@ -209,7 +208,7 @@ namespace ComputationLib
                 //// check if gamma is close to zero
                 //if (Math.Abs(gamma) < double.Epsilon ) //_minDeterminant
                 //{
-                //    //MessageBox.Show("Gamma close to 0 occurs!");
+                //    //Console.WriteLine.Show("Gamma close to 0 occurs!");
                 //    gamma += double.Epsilon;//_perturbationRatio
                 //}
                 //if (double.IsInfinity(gamma) || double.IsNaN(gamma))

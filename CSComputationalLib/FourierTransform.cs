@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using RandomNumberGeneratorLib;
+using CSRandomVariateLib;
 
 namespace ComputationLib
 {
@@ -24,8 +24,7 @@ namespace ComputationLib
             ComplexToAmplitude(orig_cvalued_fft, ref amplitude);
 
             //System.Random rnd = new System.Random();
-            RandomNumberGeneratorLib.ThreadSpecificRNG myRND = new ThreadSpecificRNG();
-            myRND.Reset(0);
+            CSRandomVariateLib.RNG rnd = new CSRandomVariateLib.RNG(0);
 
             double[][] array2Da = new double[(int)Math.Floor(data.Length / 2.0f) + 1][];
             for (int j = 0; j < array2Da.GetLength(0); j++)
@@ -35,7 +34,7 @@ namespace ComputationLib
 
             for (int i = 0; i < 1000; i++)
             {
-                double[] RandomPermuted_Input = data.OrderBy(x => myRND.RNDU01()).ToArray(); //rnd.Next()
+                double[] RandomPermuted_Input = data.OrderBy(x => rnd.NextDouble()).ToArray(); //rnd.Next()
                 double[] tmp_amplitude = new double[(int)Math.Floor(data.Length / 2.0f) + 1];
 
                 alglib.fftr1d(RandomPermuted_Input, out cvalued_fft);

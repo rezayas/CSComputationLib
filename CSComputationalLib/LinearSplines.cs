@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Windows.Forms;
 
 namespace ComputationLib
 {
@@ -72,7 +71,7 @@ namespace ComputationLib
         {
             if (Math.Truncate((maxX - minX) / bracketSize) != (maxX - minX) / bracketSize)
             {
-                MessageBox.Show("Error in the choice of bracket size!");
+                Console.WriteLine("Error in the choice of bracket size!");
             }            
 
             _bracketType = enumBracketType.FixedBracketSize;
@@ -267,7 +266,7 @@ namespace ComputationLib
             if ((Math.Truncate((maxX1 - minX1) / bracketSizeX1) != (maxX1 - minX1) / bracketSizeX1)
                 || (Math.Truncate((maxX2 - minX2) / bracketSizeX2) != (maxX2 - minX2) / bracketSizeX2))
             {
-                MessageBox.Show("Error in the choice of bracket size!");
+                Console.WriteLine("Error in the choice of bracket size!");
             }
             _minX1 = minX1;
             _maxX1 = maxX1;

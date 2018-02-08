@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using System.Text;
-using RandomNumberGeneratorLib;
+using CSRandomVariateLib;
 using ComputationLib;
 using SimulationLib;
 
@@ -38,7 +38,7 @@ namespace OptimizationLib
         private int[][] _dynamicallyControlledActionCombinations;
         private int[] _availabilityOfDynamicallyControlledActionCombinations;
         private int[] _currentDynamicallyControlledActionCombinations;
-        
+
         private double _currentCostPerUnitOfTime;
         private double _currentFixedAnPenaltyCost;
 
@@ -48,7 +48,7 @@ namespace OptimizationLib
         private ArrayList _ADPStates;
         private ArrayList _ADPStateCollections; // for when multiple simulation runs are obtained before back-propogation is done
         private double[][] _ADPPredictionErrors;
-        private bool[] _backPropogationResults;                
+        private bool[] _backPropogationResults;
         // approximation models        
         private enumQFunctionApproximationMethod _qFunctionApproximationMethod;
         private ArrayList _colOfQFunctions;
@@ -69,7 +69,7 @@ namespace OptimizationLib
 
         // Instantiation
         public POMDP_ADP()
-        {            
+        {
         }
 
         // Properties
@@ -101,7 +101,7 @@ namespace OptimizationLib
         public int[] CurrentActionCombination
         {
             get { return _currentActionCombination; }
-        }        
+        }
         public enumQFunctionApproximationMethod QFunctionApproximationMethod
         {
             get { return _qFunctionApproximationMethod; }
@@ -118,7 +118,7 @@ namespace OptimizationLib
         public int NumOfSimRunsToBackPropogate
         {
             get { return _numOfSimRunsToBackPropogate; }
-        }               
+        }
         public double CurrentCostPerUnitOfTime
         {
             get { return _currentCostPerUnitOfTime; }
@@ -132,15 +132,15 @@ namespace OptimizationLib
         // Methods
         // setup
         public void SetupTraining()
-        {            
-            _ADPStates = new ArrayList();            
+        {
+            _ADPStates = new ArrayList();
             _ADPPredictionErrors = new double[1][];
             _backPropogationResults = new bool[1];
         }
         public void SetupTraining(int numOfSimRunsToBackPropogate)
         {
             _numOfSimRunsToBackPropogate = numOfSimRunsToBackPropogate;
-            
+
             // set up adp state collection
             _ADPStateCollections = new ArrayList();
             for (int dim = 0; dim < _numOfSimRunsToBackPropogate; ++dim)
@@ -154,12 +154,12 @@ namespace OptimizationLib
         {
             // add the actions
             _actions.Add(action);
-            ++_numOfActions;            
+            ++_numOfActions;
         }
         // add an ADP state
         public void AddAnADPState(ADP_State ADPState)
         {
-            _ADPStates.Add(ADPState);            
+            _ADPStates.Add(ADPState);
         }
         public void AddAnADPState(int dimension, ADP_State ADPState)
         {
@@ -179,7 +179,7 @@ namespace OptimizationLib
                     _defaultActionCombination[thisAction.Index] = 0;
                 // check if this action is controlled dynamically
                 if (thisAction.OnOffSwitchSetting == SimulationAction.enumOnOffSwitchSetting.Dynamic)
-                    ++ _numOfActionsControlledDynamically;
+                    ++_numOfActionsControlledDynamically;
             }
 
             // find the indeces of interventions that are controlled dynamically
@@ -197,7 +197,7 @@ namespace OptimizationLib
                 // all action combinations controlled dynamically are assumed to be available
                 _availabilityOfDynamicallyControlledActionCombinations = new int[(int)Math.Pow(2, _numOfActionsControlledDynamically)];
                 SupportFunctions.MakeArrayEqualTo(ref _availabilityOfDynamicallyControlledActionCombinations, 1);
-                
+
                 // define the action combinations controlled dynamically
                 _dynamicallyControlledActionCombinations = new int[0][];
                 for (int i = 0; i < Math.Pow(2, _numOfActions); _numOfActionsControlledDynamically++)
@@ -206,7 +206,7 @@ namespace OptimizationLib
                     _dynamicallyControlledActionCombinations = ComputationLib.SupportFunctions.ConcatJaggedArray(_dynamicallyControlledActionCombinations, thisActionCombination);
                 }
             }
-            
+
         }
         // specify the available action combinations controlled dynamically
         public void SpecifyAvailabilityOfDynamicallyControlledActionCombinations(int[] availabilityOfDynamicallyControlledActionCombinations)
@@ -222,7 +222,7 @@ namespace OptimizationLib
         {
             SupportFunctions.MakeArrayEqualTo(ref _availabilityOfDynamicallyControlledActionCombinations, 1);
         }
-        
+
         // get the current action combination 
         public int[] GetCurrentActionCombination()
         {
@@ -268,7 +268,7 @@ namespace OptimizationLib
         }
         public void ChangeCurrentActionCombination(int[] newActionCombination)
         {
-            int thisActionIndex = 0;            
+            int thisActionIndex = 0;
             foreach (SimulationAction thisAction in _actions)
             {
                 thisActionIndex = thisAction.Index;
@@ -319,19 +319,19 @@ namespace OptimizationLib
         // get approximating q-function polynomial terms
         public int[,] GetQFunctionPolynomialTerms()
         {
-            int[,] result = new int[0,0];
+            int[,] result = new int[0, 0];
             switch (_qFunctionApproximationMethod)
             {
                 case enumQFunctionApproximationMethod.Q_Approximation:
                     //TODO: update GetQFunctionPolynomialTerms function for Q-Approximation
-                    result = new int[1,1];// _qFunctionApproximationModel_Additive.RegressionTermDegrees;
+                    result = new int[1, 1];// _qFunctionApproximationModel_Additive.RegressionTermDegrees;
                     break;
                 case enumQFunctionApproximationMethod.A_Approximation:
                     result = (int[,])_qFunctionApproximationModel_Additive.RegressionTermDegrees.Clone();
                     break;
                 case enumQFunctionApproximationMethod.H_Approximation:
                     //TODO: update GetQFunctionPolynomialTerms function for H-Approximation
-                    result = new int[1,1];// _qFunctionApproximationModel_Additive.RegressionTermDegrees;
+                    result = new int[1, 1];// _qFunctionApproximationModel_Additive.RegressionTermDegrees;
                     break;
             }
             return result;
@@ -371,9 +371,9 @@ namespace OptimizationLib
                     //TODO: update UpdateQFunctionCoefficients function for H-Approximation
                     //_qFunctionApproximationModel_Additive.UpdateCoefficients(coefficients);
                     break;
-            }            
+            }
         }
-        
+
         // find the greedy action combinations dynamically controlled
         public int[] FindTheGreedyActionCombinationsDynamicallyControlled(double[] arrObservationFeatureValues)//, ref double resultingCost) //, long timeIndex, long[] arrAvailableResources
         {
@@ -382,12 +382,12 @@ namespace OptimizationLib
             //ChangeCurrentActionCombination(newActionCombination);//, ref resultingCost);
         }
         // find an epsilon greedy action combinations dynamically controlled
-        public int[] FindAnEpsilongGreedyActionCombinationsDynamicallyControlled(ThreadSpecificRNG threadSpecificRNG, double[] arrObservationFeatureValues)//, ref double resultingCost) //long timeIndex, long[] arrAvailableResources,
+        public int[] FindAnEpsilongGreedyActionCombinationsDynamicallyControlled(RNG rng, double[] arrObservationFeatureValues)//, ref double resultingCost) //long timeIndex, long[] arrAvailableResources,
         {
-            return EpsilonGreedyActionCombination(threadSpecificRNG, arrObservationFeatureValues);//, timeIndex, arrAvailableResources);
+            return EpsilonGreedyActionCombination(rng, arrObservationFeatureValues);//, timeIndex, arrAvailableResources);
             //// announce the decision
             //ChangeCurrentActionCombination(newActionCombination);//, ref resultingCost);
-        }        
+        }
 
         //-------------------------------        
         // find the optimal action combination
@@ -402,10 +402,10 @@ namespace OptimizationLib
                     #region Q-Approximation
                     {
                         int actionCombIndex = 0;
-                        double max = double.MinValue, qValue = 0;                        
+                        double max = double.MinValue, qValue = 0;
                         // for each available action
                         foreach (QFunction thisQFunction in _colOfQFunctions)
-                        {                            
+                        {
                             // check if this combination is feasible
                             if (_availabilityOfDynamicallyControlledActionCombinations[actionCombIndex] == 1)
                             {
@@ -422,7 +422,7 @@ namespace OptimizationLib
                         optimalDynamicallyControlledActionCombination = (int[])_dynamicallyControlledActionCombinations[optActionCombIndex].Clone();
                     }
                     break;
-                    #endregion
+                #endregion
                 case enumQFunctionApproximationMethod.A_Approximation:
                     #region Additive-Approximation
                     {
@@ -448,7 +448,7 @@ namespace OptimizationLib
                         optimalDynamicallyControlledActionCombination = (int[])_dynamicallyControlledActionCombinations[optActionCombIndex].Clone();
                     }
                     break;
-                    #endregion
+                #endregion
                 case enumQFunctionApproximationMethod.H_Approximation:
                     #region H-Approximation
                     {
@@ -558,7 +558,7 @@ namespace OptimizationLib
         //            {
         //                if (timeIndex < thisAction.TimeIndexBecomeAvailable || timeIndex >= thisAction.TimeIndexBecomeUnavailable)
         //                    tempActionCombination[thisAction.ID] = 0;
-                        
+
         //                //if (arrAvailableResources != null)
         //                //    if (thisAction.HasResourceCondition && arrAvailableResources[thisAction.IDOfTheResourceRequiredToBeAvailable] <= 0)
         //                //        tempActionCombination[thisAction.ID] = 0;
@@ -636,7 +636,7 @@ namespace OptimizationLib
         //                // start with assuming that all vertices are in the optimal set (1: if yes, 0: if no)
         //                int[] statusOfActionCombinationVertices= new int[(int)Math.Pow(2, _numOfActions)];
         //                SupportFunctions.MakeArrayEqualTo(ref statusOfActionCombinationVertices, 1);
-                        
+
         //                // remove the vertices that are not feasible
         //                for (int actionCombIndex = 0; actionCombIndex < Math.Pow(2, _numOfActions); ++actionCombIndex)
         //                {
@@ -709,14 +709,12 @@ namespace OptimizationLib
         //}                
         // find an epsilon greedy decision        
         public int[] EpsilonGreedyActionCombination
-            (ThreadSpecificRNG threadSpecificRNG, double[] arrObservationFeatureValues)//, long timeIndex, long[] arrAvailableResources = null)
+            (RNG rng, double[] arrObservationFeatureValues)//, long timeIndex, long[] arrAvailableResources = null)
         {
             int[] anActionCombination;
-
             // with probability of epsilon, make a random decision
-            Bernoulli thisBernoulli = new Bernoulli("Decision", _epsilonGreedy);
-            if (thisBernoulli.sample(threadSpecificRNG) == 1) // make a random decision
-                anActionCombination = GetARandomActionCombinationAmongAvailableDynamicallyControlledActionCombinations(threadSpecificRNG);//, timeIndex, arrAvailableResources);
+            if (rng.NextDouble() <= _epsilonGreedy)
+                anActionCombination = GetARandomActionCombinationAmongAvailableDynamicallyControlledActionCombinations(rng);//, timeIndex, arrAvailableResources);
             else // make a greedy decision
                 anActionCombination = FindTheOptimalDynamicallyControlledActionCombination(arrObservationFeatureValues);//, timeIndex, arrAvailableResources);
 
@@ -724,25 +722,24 @@ namespace OptimizationLib
         }
         // find a Boltzmann decision        
         public int[] BoltzmannActionCombination
-            (ThreadSpecificRNG threadSpecificRNG, double[] arrObservationFeatureValues, long timeIndex, long[] arrAvailableResources = null)
+            (RNG rng, double[] arrObservationFeatureValues, long timeIndex, long[] arrAvailableResources = null)
         {
             int[] anActionCombination;
-            double[] expQOverT = new double[(int)Math.Pow(2,_numOfActionsControlledDynamically)];
-                        
+            double[] expQOverT = new double[(int)Math.Pow(2, _numOfActionsControlledDynamically)];
+
             // with probability of epsilon, make a random decision
-            Bernoulli thisBernoulli = new Bernoulli("Decision", _epsilonGreedy);
-            if (thisBernoulli.sample(threadSpecificRNG) == 1) // make a random decision
-                anActionCombination = GetARandomActionCombinationAmongAvailableDynamicallyControlledActionCombinations(threadSpecificRNG);//, timeIndex, arrAvailableResources);
+            if (rng.NextDouble() <= _epsilonGreedy)
+                anActionCombination = GetARandomActionCombinationAmongAvailableDynamicallyControlledActionCombinations(rng);//, timeIndex, arrAvailableResources);
             else // make a greedy decision
                 anActionCombination = FindTheOptimalDynamicallyControlledActionCombination(arrObservationFeatureValues);//, timeIndex, arrAvailableResources);
 
             return anActionCombination;
-        } 
+        }
 
         //--------------------------
         // set up approximation model
         public void SetUpQFunctionApproximationModel(
-            enumQFunctionApproximationMethod qFunctionApproximationMethod, enumResponseTransformation responseTransformation, 
+            enumQFunctionApproximationMethod qFunctionApproximationMethod, enumResponseTransformation responseTransformation,
             int numOfObservationFeatures, int polynomialDegree, int multiplyNumOfColumnsByThisFactorToBeginTraining)
         {
             _qFunctionApproximationMethod = qFunctionApproximationMethod;
@@ -780,10 +777,10 @@ namespace OptimizationLib
                             //{
                             //    SupportFunctions.AddToEndOfArray(ref _indecesOfInitiallyAvailableActionCombinations, actionCombinationIndex);
                             //    _inverseOf_indecesOfInitiallyAvailableActionCombinations[actionCombinationIndex] = i++;
-                                // define the Q-function
-                                _colOfQFunctions.Add(new PolynomialQFunction("Action combination index for dynamically controlled actions: " + i, 0, numOfObservationFeatures, polynomialDegree, multiplyNumOfColumnsByThisFactorToBeginTraining));
+                            // define the Q-function
+                            _colOfQFunctions.Add(new PolynomialQFunction("Action combination index for dynamically controlled actions: " + i, 0, numOfObservationFeatures, polynomialDegree, multiplyNumOfColumnsByThisFactorToBeginTraining));
                             //}
-                        }                       
+                        }
                     }
                     break;
                 case enumQFunctionApproximationMethod.A_Approximation:
@@ -804,8 +801,8 @@ namespace OptimizationLib
                             }
                         }
                     }
-                    break;                    
-            }            
+                    break;
+            }
         }
         // add L2 regularization
         public void AddL2Regularization(double penaltyParameter)
@@ -888,7 +885,7 @@ namespace OptimizationLib
                     {
                         foreach (QFunction thisQFunction in _colOfQFunctions)
                             thisQFunction.SetupAPolynomialStepSizeRule(polynomial_beta);
-                    }                   
+                    }
                     break;
                 case enumQFunctionApproximationMethod.A_Approximation:
                     _qFunctionApproximationModel_Additive.SetupAPolynomialStepSizeRule(polynomial_beta);
@@ -927,17 +924,17 @@ namespace OptimizationLib
         }
 
         // backpropagation 
-        public void DoBackpropagation(int itr, double discountFactor, bool stoppedDueToEradication, 
+        public void DoBackpropagation(int itr, double discountFactor, bool stoppedDueToEradication,
             bool useDecisionsAsFeature)
-        {            
+        {
             // do back propagation for each simulation iterations
             for (int dim = 0; dim < _numOfSimRunsToBackPropogate; ++dim)
             {
                 ArrayList thisCollectionOfADPStates;
-                if (_ADPStates != null) 
+                if (_ADPStates != null)
                     thisCollectionOfADPStates = _ADPStates;
                 else
-                    thisCollectionOfADPStates = (ArrayList)_ADPStateCollections[dim];               
+                    thisCollectionOfADPStates = (ArrayList)_ADPStateCollections[dim];
 
                 int numOfADPStates = thisCollectionOfADPStates.Count;
                 // is there any ADP state to process?
@@ -948,7 +945,7 @@ namespace OptimizationLib
                     _backPropogationResults[dim] = true;
                     // array of errors
                     //_ADPPredictionErrors[dim] = new double[numOfADPStates];
-                    double[] thisPredictionErrorsForEligibleStates = new double[0];                    
+                    double[] thisPredictionErrorsForEligibleStates = new double[0];
 
                     // get the last ADP state-decision
                     #region last ADP state
@@ -958,7 +955,7 @@ namespace OptimizationLib
                         lastADPStateDecision.RewardToGo = lastADPStateDecision.DecisoinIntervalReward;
                     else // not eradicated
                     {
-                        lastADPStateDecision.RewardToGo = 
+                        lastADPStateDecision.RewardToGo =
                             EstimatedTransformedRewardToGo(lastADPStateDecision.SelectedNextPeriodActionCombination, lastADPStateDecision.ObservationFeatureValues);
                     }
                     #endregion
@@ -979,7 +976,7 @@ namespace OptimizationLib
 
                     // debugging information
                     #region debugging
-                    _matOf_IfEliggible_Actions_FeatureValues_Responses = new double[0][];                    
+                    _matOf_IfEliggible_Actions_FeatureValues_Responses = new double[0][];
                     foreach (ADP_State thisADPState in thisCollectionOfADPStates)
                     {
                         if (thisADPState.ValidStateToUpdateQFunction)
@@ -996,7 +993,7 @@ namespace OptimizationLib
                             // concatinate
                             _matOf_IfEliggible_Actions_FeatureValues_Responses =
                                 SupportFunctions.ConcatJaggedArray(_matOf_IfEliggible_Actions_FeatureValues_Responses, thisRowOf_Actions_FeatureValues_Responses);
-                        }                        
+                        }
                     }
                     #endregion
 
@@ -1107,7 +1104,7 @@ namespace OptimizationLib
         {
             return (int[])((ADP_State)((ArrayList)_ADPStateCollections[dimension])[ADPStateIndexInCollection]).SelectedNextPeriodActionCombination.Clone();
         }
-        
+
         // add to a decision interval reward
         public void AddToDecisionIntervalReward(int ADPStateIndexInCollection, double reward)
         {
@@ -1124,7 +1121,7 @@ namespace OptimizationLib
         }
         public double GetRewardToGo(int dimension, int ADPStateIndexInCollection)
         {
-            return  ((ADP_State)((ArrayList)_ADPStateCollections[dimension])[ADPStateIndexInCollection]).RewardToGo;
+            return ((ADP_State)((ArrayList)_ADPStateCollections[dimension])[ADPStateIndexInCollection]).RewardToGo;
         }
         // prediction errors
         public double ADPPredictionErrors(int ADPStateIndex)
@@ -1146,7 +1143,7 @@ namespace OptimizationLib
             double result = 0;
 
             ArrayList thisCollectionOfADPStates = (ArrayList)_ADPStateCollections[dimension];
-            for (int ADPStateIndex = 0; ADPStateIndex < thisCollectionOfADPStates.Count; ++ ADPStateIndex)
+            for (int ADPStateIndex = 0; ADPStateIndex < thisCollectionOfADPStates.Count; ++ADPStateIndex)
             {
                 if (((ADP_State)thisCollectionOfADPStates[ADPStateIndex]).ValidStateToUpdateQFunction)
                 {
@@ -1183,7 +1180,7 @@ namespace OptimizationLib
 
             // reset the number of times each intervention is used
             foreach (SimulationAction thisAction in _actions)
-            {   
+            {
                 thisAction.NumOfSwitchesOccured = 0;
                 thisAction.NumOfDecisionPeriodsOverWhichThisInterventionWasUsed = 0;
             }
@@ -1203,7 +1200,7 @@ namespace OptimizationLib
             //        _currentCostPerUnitOfTime += thisAction.CostPerUnitOfTime;
             //    }
             //}
-        }        
+        }
         // clear all
         public void Clear()
         {
@@ -1214,17 +1211,15 @@ namespace OptimizationLib
                 foreach (ArrayList thisArrayList in _ADPStateCollections)
                     thisArrayList.Clear();
             _numOfActions = 0;
-            _numOfActionsControlledDynamically = 0;            
+            _numOfActionsControlledDynamically = 0;
         }
 
         // PRIVATE SUBS
         #region Private Subs
         // get a random action combination among available dynamically controlled action combinations
-        private int[] GetARandomActionCombinationAmongAvailableDynamicallyControlledActionCombinations(ThreadSpecificRNG threadSpecificRNG)
+        private int[] GetARandomActionCombinationAmongAvailableDynamicallyControlledActionCombinations(RNG rng)
         {
-            DiscreteUniform thisDiscreteUniform = new DiscreteUniform("Random", 0, Math.Max(0, _availabilityOfDynamicallyControlledActionCombinations.Sum() - 1));
-            int rnd = (int)thisDiscreteUniform.sample(threadSpecificRNG);
-
+            int index = rng.Next(_availabilityOfDynamicallyControlledActionCombinations.Sum());
             //int sum = 0;
             //int i = 0;
             //while (sum <= rnd)
@@ -1233,9 +1228,9 @@ namespace OptimizationLib
             //        ++sum;
             //    ++i;
             //}
-            return _dynamicallyControlledActionCombinations[rnd];
-        }    
-           
+            return _dynamicallyControlledActionCombinations[index];
+        }
+
         //// get if this is the default action combination 
         //private bool IfThisIsTheDefaultActionCombination(int[] actionCombination)
         //{
@@ -1256,7 +1251,7 @@ namespace OptimizationLib
         //    // check if this combination is feasible regardless of resource availability
         //    isFeasible = IfThisActionCombinationIsFeasible(actionCombination);
         //    if (isFeasible == false) return false;
-                        
+
         //    int actionIndex = 0;
         //    foreach (SimulationAction thisAction in _actions)
         //    {
@@ -1281,7 +1276,7 @@ namespace OptimizationLib
         //                }
         //                break;
         //        }
-               
+
         //        ++actionIndex;
         //    }
         //    return isFeasible;
@@ -1417,5 +1412,5 @@ namespace OptimizationLib
 
         }
         #endregion
-    }   
+    }
 }
