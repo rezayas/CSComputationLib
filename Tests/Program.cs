@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ComputationLib;
-using CSRandomVariateLib;
+using RandomVariateLib;
 
 namespace TestComputationalLib
 {

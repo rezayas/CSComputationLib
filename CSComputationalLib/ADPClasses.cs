@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using ComputationLib;
 
-namespace OptimizationLib
+namespace ComputationLib
 {
     public class ADP_State
     {

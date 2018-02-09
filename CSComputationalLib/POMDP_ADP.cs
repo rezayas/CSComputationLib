@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using System.Text;
-using CSRandomVariateLib;
+using RandomVariateLib;
 using ComputationLib;
 using SimulationLib;
 
-namespace OptimizationLib
+namespace ComputationLib
 {
     public class POMDP_ADP
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CSRandomVariateLib;
+using RandomVariateLib;
 
 namespace ComputationLib
 {
@@ -24,7 +24,7 @@ namespace ComputationLib
             ComplexToAmplitude(orig_cvalued_fft, ref amplitude);
 
             //System.Random rnd = new System.Random();
-            CSRandomVariateLib.RNG rnd = new CSRandomVariateLib.RNG(0);
+            RandomVariateLib.RNG rnd = new RandomVariateLib.RNG(0);
 
             double[][] array2Da = new double[(int)Math.Floor(data.Length / 2.0f) + 1][];
             for (int j = 0; j < array2Da.GetLength(0); j++)
