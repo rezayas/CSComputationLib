@@ -290,6 +290,10 @@ namespace ComputationLib
         {
             return Array.ConvertAll<double, long>(array, Convert.ToInt64);
         }
+        public static long[] ConvertArrayToLong(int[] array)
+        {
+            return Array.ConvertAll<int, long>(array, Convert.ToInt64);
+        }
         public static int[] ConvertArrayToInt(double[] array)
         {
             return Array.ConvertAll<double, int>(array, Convert.ToInt32);
