@@ -10,7 +10,7 @@ namespace SimulationLib
     {
         protected int _ID;
         protected string _name;
-        protected double _defaultValue;
+        //protected double _defaultValue;
         protected double _value;
         protected bool _includedInCalibration;
         protected bool _shouldBeUpdatedByTime = false;
@@ -27,12 +27,11 @@ namespace SimulationLib
             TimeDependetOscillating = 7,
         }
  
-        public Parameter(int ID, string name, double defaultValue)
+        public Parameter(int ID, string name)
         {
             _ID = ID;
             _name = name;
-            _defaultValue = defaultValue;
-            _value = _defaultValue;
+            _value = 0;
         }
 
         public int ID
@@ -71,8 +70,8 @@ namespace SimulationLib
         /// <param name="par3">.</param>
         /// <param name="par4">.</param>
         /// <returns> A token class representing the unit of work.</returns>
-        public IndependetParameter(int ID, string name, double defaultValue, EnumRandomVariates enumRandomVariateGenerator, double par1, double par2, double par3, double par4)
-            : base(ID, name, defaultValue)
+        public IndependetParameter(int ID, string name, EnumRandomVariates enumRandomVariateGenerator, double par1, double par2, double par3, double par4)
+            : base(ID, name)
         {
             _enumRandomVariateGenerator = enumRandomVariateGenerator;
             _par1 = par1;
@@ -108,8 +107,8 @@ namespace SimulationLib
         double _slope, _intercept;
 
         // Instantiation
-        public CorrelatedParameter(int ID, string name, double defaultValue, int idOfDepedentPar, double slope, double intercept) 
-            : base(ID, name,defaultValue)
+        public CorrelatedParameter(int ID, string name, int idOfDepedentPar, double slope, double intercept) 
+            : base(ID, name)
         {
             _type = EnumType.Correlated;
             _idOfDepedentPar = idOfDepedentPar;
@@ -135,8 +134,8 @@ namespace SimulationLib
         double[] _arrCoefficients;
 
         // Instantiation
-        public LinearCombination(int ID, string name, double defaultValue, int[] arrParIDs, double[] arrCoefficients) 
-            : base(ID,name,defaultValue)
+        public LinearCombination(int ID, string name, int[] arrParIDs, double[] arrCoefficients) 
+            : base(ID,name)
         {
             _type = EnumType.LinearCombination;
             _arrParIDs = (int[])arrParIDs.Clone();
@@ -163,8 +162,8 @@ namespace SimulationLib
         int[] _arrParIDs;
 
         // Instantiation
-        public MultipleCombination(int ID, string name, double defaultValue, int[] arrParIDs)
-            : base(ID, name, defaultValue)
+        public MultipleCombination(int ID, string name, int[] arrParIDs)
+            : base(ID, name)
         {
             _type = EnumType.MultipleCombination;
             _arrParIDs = (int[])arrParIDs.Clone();
@@ -190,8 +189,8 @@ namespace SimulationLib
         bool _inverseFirstParameter;
 
         // Instantiation
-        public MultiplicativeParameter(int ID, string name, double defaultValue, int firstParameterID, int secondParameterID, bool ifInverseFirstParameter)
-            : base(ID, name, defaultValue)
+        public MultiplicativeParameter(int ID, string name, int firstParameterID, int secondParameterID, bool ifInverseFirstParameter)
+            : base(ID, name)
         {
             _type = EnumType.Multiplicative;
             _firstParameterID = firstParameterID;
@@ -231,8 +230,8 @@ namespace SimulationLib
         { get { return _timeOff; } }
 
         // Instantiation 
-        public TimeDependetLinear(int ID, string name, double defaultValue, int interceptParID, int slopeParID, double timeOn, double timeOff)
-            : base(ID, name, defaultValue)
+        public TimeDependetLinear(int ID, string name, int interceptParID, int slopeParID, double timeOn, double timeOff)
+            : base(ID, name)
         {
             _type = EnumType.TimeDependetLinear;
             _shouldBeUpdatedByTime = true;
@@ -270,8 +269,8 @@ namespace SimulationLib
         { get { return _a3ParID; } }
 
         // Instantiation 
-        public TimeDependetOscillating(int ID, string name, double defaultValue, int a0ParID, int a1ParID, int a2ParID, int a3ParID)
-            : base(ID, name, defaultValue)
+        public TimeDependetOscillating(int ID, string name, int a0ParID, int a1ParID, int a2ParID, int a3ParID)
+            : base(ID, name)
         {
             _type = EnumType.TimeDependetOscillating;
             _shouldBeUpdatedByTime = true;
