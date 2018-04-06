@@ -5,6 +5,44 @@ using System.Text;
 
 namespace ComputationLib
 {
+    public class NewTimeSeries
+    {
+        public List<double> ObsList { get; set; } = new List<double>();
+        private int _counter = 0;
+        private int _nOfRecodingsInEachObsPeriod;
+
+        public NewTimeSeries(int nOfRecodingsInEachObsPeriod)
+        {
+            _nOfRecodingsInEachObsPeriod = nOfRecodingsInEachObsPeriod;
+        }
+
+        public void Record(double value)
+        {
+            // find if a new element should be added to the list
+            if  (_counter % _nOfRecodingsInEachObsPeriod == 0)
+            {
+                ObsList.Add(value);
+                ++_counter;
+            }
+            else
+            {
+                ObsList[ObsList.Count] += value;                
+            }
+        }
+
+        public double GetLastObs()
+        {
+            return ObsList[ObsList.Count];
+        }
+
+        public void Reset()
+        {
+            ObsList.Clear();
+            _counter = 0;
+        }
+            
+    }
+    
     public class TimeSeries
     {
         // Variables
