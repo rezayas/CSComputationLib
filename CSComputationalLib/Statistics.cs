@@ -148,6 +148,9 @@ namespace ComputationLib
         }
         public void Record(double obs, long locationIndex)
         {
+            if (double.IsNaN(obs))
+                return;
+
             double inc = obs - _mean;
             ++_count;
             _mean += inc / _count; // incremental change in mean
@@ -241,6 +244,9 @@ namespace ComputationLib
 
         public void Record(double obsTime, double obsValue)//, double interestRate, int numOfDiscountingPeriods)
         {
+            if (double.IsNaN(obsValue))
+                return;
+
             ++_count;
             if (obsTime == _baseTime)
             {
