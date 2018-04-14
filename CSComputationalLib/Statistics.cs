@@ -5,7 +5,7 @@ using MathNet.Numerics.Distributions;
 
 namespace ComputationLib
 {
-    public class ObservationBasedStatistics
+    public class ObsBasedStat
     {
         string _name;
         double _mean, _variance, _min, _max, _total;
@@ -16,7 +16,7 @@ namespace ComputationLib
         int _numOfObservationsToStore;
         bool _ifStoreObservations = false;
 
-        public ObservationBasedStatistics(string name)
+        public ObsBasedStat(string name)
         {
             _name = name;
             _count = 0;
@@ -27,7 +27,7 @@ namespace ComputationLib
             _total = 0;
             _sumOfVarNominator = 0;
         }
-        public ObservationBasedStatistics(string name, int numOfObservationsToStore)
+        public ObsBasedStat(string name, int numOfObservationsToStore)
         {
             _name = name;
             _count = 0;
@@ -180,7 +180,7 @@ namespace ComputationLib
         }
     }
 
-    public class TimePersistentStatistics
+    public class ContinuousTimeStat
     {
         double _mean, _variance, _minimum, _maximum;
         long _count;
@@ -189,7 +189,7 @@ namespace ComputationLib
         double tot;
 
         // Instantiation
-        public TimePersistentStatistics()
+        public ContinuousTimeStat()
         {
             _count = 0;
             _baseTime = 0;
