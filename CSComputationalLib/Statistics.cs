@@ -89,6 +89,15 @@ namespace ComputationLib
                     return 0;
             }
         }
+        public double[] GetMeanStDevStErr()
+        {
+            double[] results = new double[3];
+            results[0] = Mean;
+            results[1] = StDev;
+            results[2] = StErr;
+
+            return results;
+        }
         /// <summary>
         /// 95% confidence interval reflects a significance level of 0.05
         /// </summary>
