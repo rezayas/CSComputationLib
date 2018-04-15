@@ -25,16 +25,7 @@ namespace ComputationLib
             {
                 long[] arrValue = new long[1];
                 arrValue[0] = value;
-
                 arrResult = arrInput.Concat(arrValue).ToArray();
-
-                //sizeOfNewArray = arrInput.Length + 1;
-                //arrResult = new long[sizeOfNewArray];
-                //long[] arrValue = new long[1];
-                //arrValue[0] = value;
-
-                //arrInput.CopyTo(arrResult, 0);
-                //arrValue.CopyTo(arrResult, arrInput.Length);
             }
 
             arrInput = (long[])arrResult.Clone();                     
@@ -142,6 +133,7 @@ namespace ComputationLib
 
             arrInput = (string[])arrResult.Clone();
         }
+
         public static void AddToEndOfArrayFixedSize(ref long[] arrInput, long value)
         {
             int size = arrInput.Length;
@@ -169,6 +161,7 @@ namespace ComputationLib
             }
             arrInput[size - 1] = value;
         }
+
         public static double[][] ConcatJaggedArray(double[][] array1, double[][] array2)
         {
             return array1.Concat(array2).ToArray();
@@ -304,7 +297,7 @@ namespace ComputationLib
         }
         public static double[] ConvertArrayToDouble(int[] array)
         {
-            return Array.ConvertAll<int, double>(array, Convert.ToDouble);
+            return Array.ConvertAll(array, Convert.ToDouble);
         }
         public static string[] ConvertArrayToString(double[] array)
         {
@@ -325,7 +318,7 @@ namespace ComputationLib
             return (int[,])newMatrix.Clone();
         }
 
-        public static double[,] ConvertFromJaggedArrayToRegularArray(double[][] jaggedArray, int columnSize)
+        public static double[,] ConvertJaggedArrayToRegularArray(double[][] jaggedArray, int columnSize)
         {
             double[,] result = new double[jaggedArray.GetLength(0), columnSize];
             for (int i = 0; i < jaggedArray.GetLength(0); i++)
@@ -333,7 +326,7 @@ namespace ComputationLib
                     result[i, j] = jaggedArray[i][j];
             return result;
         }
-        public static int[,] ConvertFromJaggedArrayToRegularArray(int[][] jaggedArray, int columnSize)
+        public static int[,] ConvertJaggedArrayToRegularArray(int[][] jaggedArray, int columnSize)
         {
             int[,] result = new int[jaggedArray.GetLength(0), columnSize];
             for (int i = 0; i < jaggedArray.GetLength(0); i++)
@@ -341,7 +334,7 @@ namespace ComputationLib
                     result[i, j] = jaggedArray[i][j];
             return result;
         }
-        public static string[,] ConvertFromJaggedArrayToRegularArray(string[][] jaggedArray, int columnSize)
+        public static string[,] ConvertJaggedArrayToRegularArray(string[][] jaggedArray, int columnSize)
         {
             string[,] result = new string[jaggedArray.GetLength(0), columnSize];
             for (int i = 0; i < jaggedArray.GetLength(0); i++)

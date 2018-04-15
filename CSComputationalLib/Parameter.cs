@@ -8,6 +8,17 @@ namespace SimulationLib
 {
     public abstract class Parameter
     {
+        public enum EnumType
+        {
+            Independet = 1,
+            Correlated = 2,
+            LinearCombination = 3,
+            Product = 4,
+            Multiplicative = 5,
+            TimeDependetLinear = 6,
+            TimeDependetOscillating = 7,
+        }
+
         protected int _ID;
         protected string _name;
         //protected double _defaultValue;
@@ -16,16 +27,7 @@ namespace SimulationLib
         protected bool _shouldBeUpdatedByTime = false;
         protected EnumType _type; 
         
-        public enum EnumType
-        {
-            Independet = 1,
-            Correlated = 2,
-            LinearCombination = 3,
-            MultipleCombination = 4,
-            Multiplicative = 5,
-            TimeDependetLinear = 6,
-            TimeDependetOscillating = 7,
-        }
+        
  
         public Parameter(int ID, string name)
         {
@@ -36,19 +38,17 @@ namespace SimulationLib
 
         public int ID
         { get { return _ID; } }
-
         public string Name
         { get { return _name; } }
-
+        public EnumType Type
+        { get { return _type; } }
         public bool IncludedInCalibration
         { 
             get { return _includedInCalibration; }
             set { _includedInCalibration = value; }        
         }
         public double Value
-        {get {return _value; } } 
-        public EnumType Type
-        { get { return _type; } }
+        {get {return _value; } }         
         public bool ShouldBeUpdatedByTime
         { 
             get { return _shouldBeUpdatedByTime; }
@@ -58,8 +58,7 @@ namespace SimulationLib
 
     public class IndependetParameter : Parameter
     {
-        private double _par1, _par2, _par3, _par4;        
-        private EnumRandomVariates _enumRandomVariateGenerator;
+        private double _par1, _par2, _par3, _par4;
         private RVG _RVG = null;
                
         /// <summary>
@@ -73,7 +72,7 @@ namespace SimulationLib
         public IndependetParameter(int ID, string name, EnumRandomVariates enumRandomVariateGenerator, double par1, double par2, double par3, double par4)
             : base(ID, name)
         {
-            _enumRandomVariateGenerator = enumRandomVariateGenerator;
+            EnumRandomVariate = enumRandomVariateGenerator;
             _par1 = par1;
             _par2 = par2;
             _par3 = par3;
@@ -81,11 +80,10 @@ namespace SimulationLib
             _type = EnumType.Independet;
 
             _RVG = SupportProcedures.ReturnARandomVariateGenerator(enumRandomVariateGenerator, name, par1, par2, par3, par4);
-        }        
-        
+        }
+
         // Properties
-        public EnumRandomVariates Distrbution
-        { get { return _enumRandomVariateGenerator; } }
+        public EnumRandomVariates EnumRandomVariate { get; }
 
         // sample this parameter
         public double Sample(RNG rng)
@@ -130,86 +128,78 @@ namespace SimulationLib
 
     public class LinearCombination : Parameter
     {
-        int[] _arrParIDs;
         double[] _arrCoefficients;
 
         // Instantiation
-        public LinearCombination(int ID, string name, int[] arrParIDs, double[] arrCoefficients) 
+        public LinearCombination(int ID, string name, int[] parIDs, double[] coefficients) 
             : base(ID,name)
         {
             _type = EnumType.LinearCombination;
-            _arrParIDs = (int[])arrParIDs.Clone();
-            _arrCoefficients = (double[])arrCoefficients.Clone();
+            this.ParIDs = (int[])parIDs.Clone();
+            _arrCoefficients = (double[])coefficients.Clone();
         }
 
         // Properties 
-        public int[] arrParIDs
-        { get { return _arrParIDs; } }
+        public int[] ParIDs { get; }
 
         // sample this parameters
-        public double Sample(double[] arrValuesOfParameters)
+        public double Sample(double[] valuesOfParams)
         {
             _value =0;
-            for (int i = 0; i < arrValuesOfParameters.Length; i++)
-                _value += _arrCoefficients[i] * arrValuesOfParameters[i];
+            for (int i = 0; i < valuesOfParams.Length; i++)
+                _value += _arrCoefficients[i] * valuesOfParams[i];
             return _value;
         }
 
     }
 
-    public class MultipleCombination : Parameter
+    public class ProductParameter : Parameter
     {
-        int[] _arrParIDs;
-
         // Instantiation
-        public MultipleCombination(int ID, string name, int[] arrParIDs)
+        public ProductParameter(int ID, string name, int[] parIDs)
             : base(ID, name)
         {
-            _type = EnumType.MultipleCombination;
-            _arrParIDs = (int[])arrParIDs.Clone();
+            _type = EnumType.Product;
+            this.ParIDs = (int[])parIDs.Clone();
         }
 
         // Properties 
-        public int[] arrParIDs
-        { get { return _arrParIDs; } }
+        public int[] ParIDs { get; }
 
         // sample this parameters
-        public double Sample(double[] arrValueOfParameters)
+        public double Sample(double[] valueOfParams)
         {
             _value = 1;
-            for (int i = 0; i < arrValueOfParameters.Length; i++)
-                _value *= arrValueOfParameters[i];
+            for (int i = 0; i < valueOfParams.Length; i++)
+                _value *= valueOfParams[i];
             return _value;
         }
     }
 
     public class MultiplicativeParameter : Parameter
     {
-        int _firstParameterID, _secondParameterID;
         bool _inverseFirstParameter;
 
         // Instantiation
-        public MultiplicativeParameter(int ID, string name, int firstParameterID, int secondParameterID, bool ifInverseFirstParameter)
+        public MultiplicativeParameter(int ID, string name, int par1ID, int par2ID, bool ifInversePar1)
             : base(ID, name)
         {
             _type = EnumType.Multiplicative;
-            _firstParameterID = firstParameterID;
-            _secondParameterID = secondParameterID;
-            _inverseFirstParameter = ifInverseFirstParameter;
+            FirstParameterID = par1ID;
+            SecondParameterID = par2ID;
+            _inverseFirstParameter = ifInversePar1;
         }
         // Properties 
-        public int FirstParameterID
-        { get { return _firstParameterID; } }
-        public int SecondParameterID
-        { get { return _secondParameterID; } }
+        public int FirstParameterID { get; }
+        public int SecondParameterID { get; }
 
         // sample this parameter
-        public double Sample(double valueOfFirstParameter, double valueOfSecondParameter)
+        public double Sample(double valueOfPar1, double valueOfPar2)
         {
             if (_inverseFirstParameter)
-                _value = valueOfSecondParameter / valueOfFirstParameter;                
+                _value = valueOfPar2 / valueOfPar1;                
             else
-                _value = valueOfFirstParameter * valueOfSecondParameter;                
+                _value = valueOfPar1 * valueOfPar2;                
             return _value; ;
         }
 
@@ -217,17 +207,10 @@ namespace SimulationLib
 
     public class TimeDependetLinear : Parameter
     {
-        int _interceptParID, _slopeParID;
-        double _timeOn, _timeOff;
-
-        public int InterceptParID
-        { get { return _interceptParID; } }
-        public int SlopeParID
-        { get { return _slopeParID; } }
-        public double TimeOn
-        { get { return _timeOn; } }
-        public double TimeOff
-        { get { return _timeOff; } }
+        public int InterceptParID { get; }
+        public int SlopeParID { get; }
+        public double TimeOn { get; }
+        public double TimeOff { get; }
 
         // Instantiation 
         public TimeDependetLinear(int ID, string name, int interceptParID, int slopeParID, double timeOn, double timeOff)
@@ -236,10 +219,10 @@ namespace SimulationLib
             _type = EnumType.TimeDependetLinear;
             _shouldBeUpdatedByTime = true;
 
-            _interceptParID = interceptParID;
-            _slopeParID = slopeParID;
-            _timeOn = timeOn;
-            _timeOff = timeOff;
+            InterceptParID = interceptParID;
+            SlopeParID = slopeParID;
+            TimeOn = timeOn;
+            TimeOff = timeOff;
         }
 
         // sample this parameter
@@ -257,16 +240,10 @@ namespace SimulationLib
 
     public class TimeDependetOscillating : Parameter
     {
-        int _a0ParID, _a1ParID, _a2ParID, _a3ParID;
-
-        public int a0ParID
-        { get { return _a0ParID; } }
-        public int a1ParID
-        { get { return _a1ParID; } }
-        public int a2ParID
-        { get { return _a2ParID; } }
-        public int a3ParID
-        { get { return _a3ParID; } }
+        public int a0ParID { get; }
+        public int a1ParID { get; }
+        public int a2ParID { get; }
+        public int a3ParID { get; }
 
         // Instantiation 
         public TimeDependetOscillating(int ID, string name, int a0ParID, int a1ParID, int a2ParID, int a3ParID)
@@ -275,10 +252,10 @@ namespace SimulationLib
             _type = EnumType.TimeDependetOscillating;
             _shouldBeUpdatedByTime = true;
 
-            _a0ParID = a0ParID;
-            _a1ParID = a1ParID;
-            _a2ParID = a2ParID;
-            _a3ParID = a3ParID;
+            this.a0ParID = a0ParID;
+            this.a1ParID = a1ParID;
+            this.a2ParID = a2ParID;
+            this.a3ParID = a3ParID;
         }
 
         // sample this parameter

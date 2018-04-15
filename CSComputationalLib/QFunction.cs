@@ -152,7 +152,7 @@ namespace ComputationLib
         }
         public int[,] RegressionTermDegrees
         {
-            get { return SupportFunctions.ConvertFromJaggedArrayToRegularArray(_degreesOfContinuousVariablesInPolynomialTerms, _numOfContinuousVariables); }
+            get { return SupportFunctions.ConvertJaggedArrayToRegularArray(_degreesOfContinuousVariablesInPolynomialTerms, _numOfContinuousVariables); }
         }
         public double[] CoeffientEstimates
         {
