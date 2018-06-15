@@ -8,6 +8,11 @@ namespace SimulationLib
 {
     public abstract class Parameter
     {
+        protected double _value = 0;
+        protected EnumType _type;
+        protected bool _includedInCalibration;
+        protected bool _shouldBeUpdatedByTime;
+
         public enum EnumType
         {
             Independet = 1,
@@ -19,40 +24,18 @@ namespace SimulationLib
             TimeDependetOscillating = 7,
         }
 
-        protected int _ID;
-        protected string _name;
-        //protected double _defaultValue;
-        protected double _value;
-        protected bool _includedInCalibration;
-        protected bool _shouldBeUpdatedByTime = false;
-        protected EnumType _type; 
-        
-        
- 
-        public Parameter(int ID, string name)
-        {
-            _ID = ID;
-            _name = name;
-            _value = 0;
-        }
+        public int ID { get; }
+        public string Name { get; }
+        public double Value { get => _value; }
+        public bool IncludedInCalibration { get => _includedInCalibration; set => _includedInCalibration = value; }
+        public bool ShouldBeUpdatedByTime { get => _shouldBeUpdatedByTime; set => _shouldBeUpdatedByTime = value; }
+        public EnumType Type { get => _type; }
 
-        public int ID
-        { get { return _ID; } }
-        public string Name
-        { get { return _name; } }
-        public EnumType Type
-        { get { return _type; } }
-        public bool IncludedInCalibration
-        { 
-            get { return _includedInCalibration; }
-            set { _includedInCalibration = value; }        
-        }
-        public double Value
-        {get {return _value; } }         
-        public bool ShouldBeUpdatedByTime
-        { 
-            get { return _shouldBeUpdatedByTime; }
-            set { _shouldBeUpdatedByTime = value; }
+        public Parameter(int id, string name)
+        {
+            ID = id;
+            Name = name;
+            _value = 0;
         }
     } // end of Parameter class
 
