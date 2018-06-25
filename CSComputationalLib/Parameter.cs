@@ -22,6 +22,7 @@ namespace SimulationLib
             Multiplicative = 5,
             TimeDependetLinear = 6,
             TimeDependetOscillating = 7,
+            ComorbidityDisutility = 8,
         }
 
         public int ID { get; }
@@ -41,17 +42,12 @@ namespace SimulationLib
 
     public class IndependetParameter : Parameter
     {
+        // Properties
+        public EnumRandomVariates EnumRandomVariate { get; }
+
         private double _par1, _par2, _par3, _par4;
         private RVG _RVG = null;
                
-        /// <summary>
-        /// Return a random variate generators
-        /// </summary>
-        /// <param name="par1">Constant -> constant value; Uniform -> Min; Normal -> Mean.</param>
-        /// <param name="par2">Uniform -> Max ; Normal -> StDev.</param>
-        /// <param name="par3">.</param>
-        /// <param name="par4">.</param>
-        /// <returns> A token class representing the unit of work.</returns>
         public IndependetParameter(int ID, string name, EnumRandomVariates enumRandomVariateGenerator, double par1, double par2, double par3, double par4)
             : base(ID, name)
         {
@@ -64,9 +60,6 @@ namespace SimulationLib
 
             _RVG = SupportProcedures.ReturnARandomVariateGenerator(enumRandomVariateGenerator, name, par1, par2, par3, par4);
         }
-
-        // Properties
-        public EnumRandomVariates EnumRandomVariate { get; }
 
         // sample this parameter
         public double Sample(RNG rng)
@@ -249,4 +242,23 @@ namespace SimulationLib
         }
 
     }// end of TimeDependetOscillating
+
+    public class ComorbidityDisutility : Parameter
+    {
+        public int Par1ID { get; }
+        public int Par2ID { get; }
+
+        public ComorbidityDisutility(int id, string name, int par1ID, int par2ID): base(id, name)
+        {
+            Par1ID = par1ID;
+            Par2ID = par2ID;
+        }
+
+        public double Sample(double valDistulity1, double valDistulity2)
+        {
+            _value = 1 - (1 - valDistulity1) * (1 - valDistulity2);
+            return _value;
+        }
+    }
+
 }
