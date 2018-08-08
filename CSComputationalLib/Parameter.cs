@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using RandomVariateLib;
 
-namespace SimulationLib
+namespace ComputationLib
 {
     public abstract class Parameter
     {
@@ -15,7 +15,7 @@ namespace SimulationLib
 
         public enum EnumType
         {
-            Independet = 1,
+            Independet = 1,     // random variate generator
             Correlated = 2,
             LinearCombination = 3,
             Product = 4,
@@ -38,7 +38,40 @@ namespace SimulationLib
             Name = name;
             _value = 0;
         }
-    } // end of Parameter class
+
+        public static EnumType FindParameterType(string type)
+        {
+            EnumType thisEnum;
+            switch (type.ToLower())
+            {
+                case "correlated":
+                    thisEnum = EnumType.Correlated;
+                    break;
+                case "linear combination":
+                    thisEnum = EnumType.LinearCombination;
+                    break;
+                case "product":
+                    thisEnum = EnumType.Product;
+                    break;
+                case "multiplicative":
+                    thisEnum = EnumType.Multiplicative;
+                    break;
+                case "time-dependent linear":
+                    thisEnum = EnumType.TimeDependetLinear;
+                    break;
+                case "time-dependent oscillating":
+                    thisEnum = EnumType.TimeDependetOscillating;
+                    break;
+                case "comorbidity disutility":
+                    thisEnum = EnumType.ComorbidityDisutility;
+                    break;
+                default:
+                    thisEnum = EnumType.Independet;
+                    break;
+            }
+            return thisEnum;
+        }
+    } 
 
     public class IndependetParameter : Parameter
     {
@@ -73,25 +106,22 @@ namespace SimulationLib
             return _RVG.GetEquallyDistributedPoints(nOfPoints);
         }
 
-    } // end of IndependetParameter
+    } 
 
     public class CorrelatedParameter : Parameter
     {
-        int _idOfDepedentPar;
-        double _slope, _intercept;
+        public int IDOfDepedentPar { get; }
+        private double _slope, _intercept;
 
         // Instantiation
         public CorrelatedParameter(int ID, string name, int idOfDepedentPar, double slope, double intercept) 
             : base(ID, name)
         {
             _type = EnumType.Correlated;
-            _idOfDepedentPar = idOfDepedentPar;
+            IDOfDepedentPar = idOfDepedentPar;
             _slope = slope;
             _intercept = intercept;
         }
-        // Properties
-        public int IDOfDepedentPar
-        { get { return _idOfDepedentPar; } }
 
         // sample this parameter
         public double Sample(double valueOfDependentPar)
@@ -100,11 +130,11 @@ namespace SimulationLib
             return _value;
         }
 
-    } // end of IndependetParameter
+    } 
 
     public class LinearCombination : Parameter
     {
-        double[] _arrCoefficients;
+        private double[] _arrCoefficients;
 
         // Instantiation
         public LinearCombination(int ID, string name, int[] parIDs, double[] coefficients) 
@@ -179,7 +209,7 @@ namespace SimulationLib
             return _value; ;
         }
 
-    } // end of MultiplicativeParameter
+    } 
 
     public class TimeDependetLinear : Parameter
     {
@@ -212,7 +242,7 @@ namespace SimulationLib
             return _value;
         }
 
-    }// end of TimeDependetLinear
+    }
 
     public class TimeDependetOscillating : Parameter
     {
@@ -241,7 +271,7 @@ namespace SimulationLib
             return _value; 
         }
 
-    }// end of TimeDependetOscillating
+    }
 
     public class ComorbidityDisutility : Parameter
     {
@@ -250,6 +280,7 @@ namespace SimulationLib
 
         public ComorbidityDisutility(int id, string name, int par1ID, int par2ID): base(id, name)
         {
+            _type = EnumType.ComorbidityDisutility;
             Par1ID = par1ID;
             Par2ID = par2ID;
         }
