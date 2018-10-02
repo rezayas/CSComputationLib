@@ -34,8 +34,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\CSRandomVariateLib\CSRandomVariateLib\CSRandomVariateLib\bin\Release\CSRandomVariateLib.dll</HintPath>
     </Reference>
-    <Reference Include="MathNet.Numerics, Version=4.4.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Numerics.4.4.0\lib\net461\MathNet.Numerics.dll</HintPath>
+    <Reference Include="MathNet.Numerics, Version=4.5.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MathNet.Numerics.4.5.1\lib\net461\MathNet.Numerics.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -68,15 +68,15 @@
     <Compile Include="StatisticalFunctions.cs" />
     <Compile Include="Statistics.cs" />
     <Compile Include="StepSizeRule.cs" />
-    <Compile Include="StochasticApproximator.cs" />
+    <Compile Include="StochasticApproximation.cs" />
     <Compile Include="SupportFunctions.cs" />
     <Compile Include="TimeSeries.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
-    <WCFMetadata Include="Connected Services\" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
