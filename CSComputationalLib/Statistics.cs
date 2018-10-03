@@ -80,7 +80,7 @@ namespace ComputationLib
             if (NumOfRecordings <= 1)
                 return 0;
 
-            return Mean - this.HalfWidth(significanceLevel);
+            return Mean - HalfWidth(significanceLevel);
         }
         public bool IfStatisticallyDifferent(double nullHypotheis, double significanceLevel)
         {

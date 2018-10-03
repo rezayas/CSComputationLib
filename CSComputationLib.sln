@@ -10,6 +10,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj
 		{51D3DCA3-0D62-40AF-AE84-EA0A79B28346} = {51D3DCA3-0D62-40AF-AE84-EA0A79B28346}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestStochApproximation", "TestStochApproximation\TestStochApproximation.csproj", "{BF1320DF-AADF-45FE-B33A-332AE097FCD9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{51D3DCA3-0D62-40AF-AE84-EA0A79B28346} = {51D3DCA3-0D62-40AF-AE84-EA0A79B28346}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +29,10 @@ Global
 		{4BD3E825-CD78-4B73-AC61-5F9F531B07E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4BD3E825-CD78-4B73-AC61-5F9F531B07E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4BD3E825-CD78-4B73-AC61-5F9F531B07E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF1320DF-AADF-45FE-B33A-332AE097FCD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF1320DF-AADF-45FE-B33A-332AE097FCD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF1320DF-AADF-45FE-B33A-332AE097FCD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF1320DF-AADF-45FE-B33A-332AE097FCD9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
