@@ -17,7 +17,7 @@ namespace TestStochApproximation
             StochasticApproximation optProb = new StochasticApproximation(
                 simModel: new TestBedX2Y2XY(errorVar: 10),
                 derivativeStep: 1,
-                stepSize: new StepSize(a: 1)
+                stepSize: new StepSize(a: 50)
                 );
 
             // minimize

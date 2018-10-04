@@ -100,8 +100,11 @@ namespace ComputationLib
                     }
                 }
 
+                // normalize derivative
+                Vector<double> nDf = Df.Normalize(p: 2);
+
                 // find a new x: x_new = x - stepSize*f'(x)
-                x = x - _stepSize.GetValue(itr) * Df;
+                x = x - _stepSize.GetValue(itr) * nDf;
 
                 // get f(x)
                 f = _simModel.GetAReplication(x);
@@ -111,7 +114,7 @@ namespace ComputationLib
                 Itr_i.Add(itr);
                 Itr_x.Add(x);
                 Itr_f.Add(f);
-                Itr_Df.Add(Df);
+                Itr_Df.Add(nDf);
             }
 
             // store the optimal x and optimal objective value            
