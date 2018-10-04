@@ -23,11 +23,13 @@ namespace TestStochApproximation
             // minimize
             double[] x0 = new double[2] { -10, 20 };
             optProb.Minimize(
-                maxItrs: 5000, 
+                maxItrs: 5000,
+                nLastItrsToAve: 500,
                 x0: Vector<double>.Build.DenseOfArray(x0), 
                 ifTwoSidedDerivative: true);
 
-            Console.WriteLine(optProb.XStar);
+            Console.WriteLine(optProb.xStar);
+            Console.WriteLine(optProb.fStar);
             optProb.ExportResultsToCSV("TestX2Y2.csv");
             
         }
