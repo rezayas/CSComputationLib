@@ -12,6 +12,7 @@ namespace ComputationLib
     public abstract class SimModel
     {
         public abstract double GetAReplication(Vector<double> x, bool ifResampleSeeds = true);
+        public virtual void ResetSeedAtItr0() { }
     }
 
     public class TestBedX2Y2XY : SimModel
@@ -35,6 +36,10 @@ namespace ComputationLib
             }
 
             return Math.Pow(x[0], 2) + Math.Pow(x[1], 2) + x[0]*x[1] + _err.SampleContinuous(_rnd);
+        }
+        public override void ResetSeedAtItr0()
+        {
+            _currentSeed = 0;
         }
     }
 
@@ -75,6 +80,10 @@ namespace ComputationLib
 
         public void Minimize(int maxItrs, int nLastItrsToAve, Vector<double> x0, bool ifTwoSidedDerivative = true)
         {
+            // reset seed of the simulation model at iteration 0
+            // note that this method could be empty if there is no need to reset the seed 
+            _simModel.ResetSeedAtItr0();
+
             // iteration 0
             Vector<double> x = x0;
             double f = _simModel.GetAReplication(x, ifResampleSeeds: true);
@@ -118,9 +127,8 @@ namespace ComputationLib
 
                 // get f(x)
                 f = _simModel.GetAReplication(x, ifResampleSeeds: true);
-                //Console.WriteLine(f+x.ToString()+derivative.ToString());
 
-                // store information at iteration 0
+                // store information of this iteration 
                 Itr_i.Add(itr);
                 Itr_x.Add(x);
                 Itr_f.Add(f);
