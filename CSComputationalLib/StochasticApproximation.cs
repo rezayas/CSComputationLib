@@ -43,39 +43,55 @@ namespace ComputationLib
         }
     }
 
-    public class StepSize
+    public class StepSize_a
     {
         private double _a;
 
-        public StepSize(double a)
+        public StepSize_a(double a)
         {
             _a = a;
         }
         public double GetValue(int itr)
         {
-            return _a / (itr + 1);
+            return _a / itr;
+        }
+    }
+
+    public class StepSize_Df
+    {
+        private double _c;
+
+        public StepSize_Df(double c)
+        {
+            _c = c;
+        }
+        public double GetValue(int itr)
+        {
+            return _c * Math.Pow(itr, -0.25);
         }
     }
 
     public class StochasticApproximation
     {
-        private double _derivativeStep = 0;
-        private StepSize _stepSize = null;
+        private StepSize_a _stepSize_a = null;
+        private StepSize_Df _stepSize_Df = null;
         private SimModel _simModel = null;
 
-        public List<int> Itr_i { get; private set; } = new List<int>();
+        public List<int> Itr_i { get; private set; } = new List<int>();                
         public List<Vector<double>> Itr_x { get; private set; } = new List<Vector<double>>();
         public List<double> Itr_f { get; private set; } = new List<double>();
         public List<Vector<double>> Itr_Df { get; private set; } = new List<Vector<double>>();
+        public List<double> Itr_step_Df { get; private set; } = new List<double>();
+        public List<double> Itr_step_p { get; private set; } = new List<double>();
 
         public Vector<double> xStar { get; private set; }
         public double fStar { get; private set; }
 
-        public StochasticApproximation(SimModel simModel, double derivativeStep, StepSize stepSize)
+        public StochasticApproximation(SimModel simModel, StepSize_a stepSize_a, StepSize_Df stepSize_Df)
         {
             _simModel = simModel;
-            _derivativeStep = derivativeStep;
-            _stepSize = stepSize;
+            _stepSize_a = stepSize_a;
+            _stepSize_Df = stepSize_Df;
         }
 
         public void Minimize(int maxItrs, int nLastItrsToAve, Vector<double> x0, bool ifTwoSidedDerivative = true)
@@ -93,15 +109,19 @@ namespace ComputationLib
             Itr_x.Add(x);
             Itr_f.Add(f);            
 
-            // build epsilon matrix
-            Matrix<double> epsilonMatrix = Matrix<double>.Build.DenseDiagonal(x0.Count(), _derivativeStep);
-
             // iterations of the algorithm
             for (int itr = 1; itr <= maxItrs; itr++)
             {
+                // current derivative step size
+                double step_Df = _stepSize_Df.GetValue(itr);
+
+                // build epsilon matrix
+                Matrix<double> epsilonMatrix = Matrix<double>.Build.DenseDiagonal(x0.Count(), step_Df);
+
                 // estimate the derivative of f at x
                 Vector<double> Df = Vector<double>.Build.Dense(x0.Count());
-                for (int i = 0; i < x0.Count(); i++){
+                for (int i = 0; i < x0.Count(); i++)
+                {
                     if (ifTwoSidedDerivative)
                     {
                         Df[i] = 
@@ -109,13 +129,13 @@ namespace ComputationLib
                                 _simModel.GetAReplication(x + epsilonMatrix.Row(i), ifResampleSeeds: false) - 
                                 _simModel.GetAReplication(x - epsilonMatrix.Row(i), ifResampleSeeds: false)
                             ) 
-                            / (2*_derivativeStep);
+                            / (2*step_Df);
                     }
                     else
                     {
                         Df[i] = 
                             (_simModel.GetAReplication(x + epsilonMatrix.Row(i), ifResampleSeeds: false) - f) 
-                            / _derivativeStep;
+                            / step_Df;
                     }
                 }
 
@@ -123,7 +143,8 @@ namespace ComputationLib
                 Vector<double> nDf = Df.Normalize(p: 2);
 
                 // find a new x: x_new = x - stepSize*f'(x)
-                x = x - _stepSize.GetValue(itr) * nDf;
+                double step_p = _stepSize_a.GetValue(itr);
+                x = x - step_p * nDf;
 
                 // get f(x)
                 f = _simModel.GetAReplication(x, ifResampleSeeds: true);
@@ -133,6 +154,8 @@ namespace ComputationLib
                 Itr_x.Add(x);
                 Itr_f.Add(f);
                 Itr_Df.Add(nDf);
+                Itr_step_Df.Add(step_Df);
+                Itr_step_p.Add(step_p);
             }
 
             // store the optimal x and optimal objective value 
@@ -148,22 +171,33 @@ namespace ComputationLib
 
             // assumed 0 for the derivative at xStar
             Itr_Df.Add(Vector<double>.Build.DenseOfArray(new double[x.Count]));
+            Itr_step_Df.Add(double.NaN);
+            Itr_step_p.Add(double.NaN);
         }
 
         public double[,] GetResultsInAMatrix()
         {
-            double[,] result = new double[Itr_i.Count, 1 + 1 + 2*xStar.Count];
+            double[,] result = new double[Itr_i.Count, 2 + 2*xStar.Count + 2];
 
             for (int itr = 0; itr<Itr_i.Count; itr++)
             {
                 int j = 0;
+
+                // iteration
                 result[itr, j++] = Itr_i[itr];
+                // f
                 result[itr, j++] = Itr_f[itr];
 
+                // x
                 for (int i = 0; i < xStar.Count; i++)
                     result[itr, j++] = Itr_x[itr][i];
+                // Df(x)
                 for (int i = 0; i < xStar.Count; i++)
                     result[itr, j++] = Itr_Df[itr][i];
+                
+                // steps
+                result[itr, j++] = Itr_step_Df[itr];
+                result[itr, j++] = Itr_step_p[itr];
             }
             return result;
         }
@@ -179,6 +213,8 @@ namespace ComputationLib
                 colHeader.Add("x"+i);
             for (int i = 0; i < xStar.Count; i++)
                 colHeader.Add("Df" + i);
+            colHeader.Add("Step_Df");
+            colHeader.Add("Step_a");            
 
             DelimitedWriter.Write(filename, matrix, ",", columnHeaders: colHeader);
         }

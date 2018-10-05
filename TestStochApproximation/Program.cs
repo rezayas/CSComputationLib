@@ -16,20 +16,22 @@ namespace TestStochApproximation
 
             StochasticApproximation optProb = new StochasticApproximation(
                 simModel: new TestBedX2Y2XY(errorVar: 10),
-                derivativeStep: 1,
-                stepSize: new StepSize(a: 50)
+                stepSize_a: new StepSize_a(a: 20),
+                stepSize_Df: new StepSize_Df(c: 1)
                 );
 
+            // initial value of x
+            double[] x0 = new double[2] { -10, 20 }; 
+            
             // minimize
-            double[] x0 = new double[2] { -10, 20 };
             optProb.Minimize(
                 maxItrs: 5000,
                 nLastItrsToAve: 500,
                 x0: Vector<double>.Build.DenseOfArray(x0), 
                 ifTwoSidedDerivative: true);
 
-            Console.WriteLine(optProb.xStar);
-            Console.WriteLine(optProb.fStar);
+            Console.WriteLine("Optimal x:" + optProb.xStar);
+            Console.WriteLine("Optimal f:" + optProb.fStar);
             optProb.ExportResultsToCSV("TestX2Y2.csv");
             
         }
