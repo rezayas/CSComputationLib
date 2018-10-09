@@ -45,29 +45,29 @@ namespace ComputationLib
 
     public class StepSize_a
     {
-        private double _a;
+        public double a0 { get; }
 
-        public StepSize_a(double a)
+        public StepSize_a(double a0)
         {
-            _a = a;
+            this.a0 = a0;
         }
         public double GetValue(int itr)
         {
-            return _a / itr;
+            return a0 / itr;
         }
     }
 
     public class StepSize_Df
     {
-        private double _c;
+        public double c0 { get; }
 
-        public StepSize_Df(double c)
+        public StepSize_Df(double c0)
         {
-            _c = c;
+            this.c0 = c0;
         }
         public double GetValue(int itr)
         {
-            return _c * Math.Pow(itr, -0.25);
+            return c0 * Math.Pow(itr, -0.25);
         }
     }
 
@@ -217,6 +217,88 @@ namespace ComputationLib
             colHeader.Add("Step_a");            
 
             DelimitedWriter.Write(filename, matrix, ",", columnHeaders: colHeader);
+        }
+
+        public string Get_a_c()
+        {
+            return "a" + _stepSize_a.a0 + "-" + _stepSize_Df.c0; //.ToString("F2")
+        }
+        public double Get_a0()
+        {
+            return _stepSize_a.a0;
+        }
+        public double Get_c0()
+        {
+            return _stepSize_Df.c0;
+        }
+    }
+
+    public class MultiStochasticApproximation
+    {
+        List<StochasticApproximation> stochasticApproximations = new List<StochasticApproximation>();
+        public double fStar { get; private set; } = double.MaxValue;
+        public Vector<double> xStar { get; private set; }
+        public double aStar { get; private set; } = double.NaN;
+        public double cStar { get; private set; } = double.NaN;
+
+        public MultiStochasticApproximation(SimModel simModel, double[] stepSize_as, double[] stepSize_cs)
+        {
+
+            // build the stochastic approximations
+            foreach (double a in stepSize_as)
+            {
+                foreach (double c in stepSize_cs)
+                {
+                    stochasticApproximations.Add(
+                        new StochasticApproximation(
+                            simModel: simModel,
+                            stepSize_a: new StepSize_a(a),
+                            stepSize_Df: new StepSize_Df(c))
+                            );                    
+                }
+            }
+        }
+
+        public void Minimize(int maxItrs, int nLastItrsToAve, Vector<double> x0, bool ifTwoSidedDerivative = true, bool ifParallel = true)
+        {
+            if (ifParallel && stochasticApproximations.Count > 1)
+            {
+                Parallel.ForEach(stochasticApproximations, stocApprx =>
+                {
+                    stocApprx.Minimize(maxItrs, nLastItrsToAve, x0, ifTwoSidedDerivative);
+                });
+            }
+            else
+            {
+                foreach (StochasticApproximation stocApprx in stochasticApproximations)
+                {
+                    stocApprx.Minimize(maxItrs, nLastItrsToAve, x0, ifTwoSidedDerivative);
+                }
+            }
+
+            // find the optimizer
+            // find the a value that minimizes f
+            xStar = Vector<double>.Build.Dense(x0.Count);
+            fStar = double.MaxValue;
+            foreach (StochasticApproximation stocApprx in stochasticApproximations)
+            {
+                // if this a led to the minimum f
+                if (stocApprx.fStar < fStar)
+                {
+                    fStar = stocApprx.fStar;
+                    xStar = stocApprx.xStar;
+                    aStar = stocApprx.Get_a0();
+                    cStar = stocApprx.Get_c0();
+                }
+            }
+        }
+
+        public void ExportResultsToCSV(string filename)
+        {
+            foreach (StochasticApproximation stocApprx in stochasticApproximations)
+            {
+                stocApprx.ExportResultsToCSV(filename + stocApprx.Get_a_c() + ".csv");
+            }
         }
     }
 }
