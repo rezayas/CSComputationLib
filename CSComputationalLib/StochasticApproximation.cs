@@ -12,6 +12,7 @@ namespace ComputationLib
     public abstract class SimModel
     {
         public abstract double GetAReplication(Vector<double> x, bool ifResampleSeeds = true);
+        public virtual Vector<double> GetDerivativeEstimate(Vector<double> x, double derivative_step) { return null; }
         public virtual void ResetSeedAtItr0() { }
     }
 
@@ -94,7 +95,7 @@ namespace ComputationLib
             _stepSize_Df = stepSize_Df;
         }
 
-        public void Minimize(int maxItrs, int nLastItrsToAve, Vector<double> x0, bool ifTwoSidedDerivative = true)
+        public void Minimize(int maxItrs, int nLastItrsToAve, Vector<double> x0, bool ifTwoSidedDerivative = true, bool useParallel = true)
         {
             // reset seed of the simulation model at iteration 0
             // note that this method could be empty if there is no need to reset the seed 
@@ -113,23 +114,33 @@ namespace ComputationLib
             for (int itr = 1; itr <= maxItrs; itr++)
             {
                 // current derivative step size
-                double step_Df = _stepSize_Df.GetValue(itr);
-
-                // build epsilon matrix
-                Matrix<double> epsilonMatrix = Matrix<double>.Build.DenseDiagonal(x0.Count(), step_Df);
+                double step_Df = _stepSize_Df.GetValue(itr);                
 
                 // estimate the derivative of f at x
                 Vector<double> Df = Vector<double>.Build.Dense(x0.Count());
+                
+                // build epsilon matrix
+                Matrix<double> epsilonMatrix = Matrix<double>.Build.DenseDiagonal(x0.Count(), step_Df);
+
                 for (int i = 0; i < x0.Count(); i++)
                 {
                     if (ifTwoSidedDerivative)
                     {
-                        Df[i] = 
-                            (
-                                _simModel.GetAReplication(x + epsilonMatrix.Row(i), ifResampleSeeds: false) - 
+                        // calcualte derivative 
+                        if (useParallel)
+                            {
+                                // get the derivative from the model
+                                Df = _simModel.GetDerivativeEstimate(x, step_Df);
+                            }
+                        else
+                        {
+                            // estimate the derivative here
+                            Df[i] =
+                                (
+                                _simModel.GetAReplication(x + epsilonMatrix.Row(i), ifResampleSeeds: false) -
                                 _simModel.GetAReplication(x - epsilonMatrix.Row(i), ifResampleSeeds: false)
-                            ) 
-                            / (2*step_Df);
+                                ) / (2 * step_Df);
+                        }
                     }
                     else
                     {
