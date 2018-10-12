@@ -83,7 +83,7 @@ namespace ComputationLib
         public List<double> Itr_f { get; private set; } = new List<double>();
         public List<Vector<double>> Itr_Df { get; private set; } = new List<Vector<double>>();
         public List<double> Itr_step_Df { get; private set; } = new List<double>();
-        public List<double> Itr_step_p { get; private set; } = new List<double>();
+        public List<double> Itr_step_a { get; private set; } = new List<double>();
 
         public Vector<double> xStar { get; private set; }
         public double fStar { get; private set; }
@@ -95,7 +95,8 @@ namespace ComputationLib
             _stepSize_Df = stepSize_Df;
         }
 
-        public void Minimize(int maxItrs, int nLastItrsToAve, Vector<double> x0, bool ifTwoSidedDerivative = true, bool useParallel = true)
+        public void Minimize(int maxItrs, int nLastItrsToAve, Vector<double> x0, 
+            bool ifTwoSidedDerivative = true, bool modelProvidesDerivatives = false)
         {
             // reset seed of the simulation model at iteration 0
             // note that this method could be empty if there is no need to reset the seed 
@@ -127,7 +128,7 @@ namespace ComputationLib
                     if (ifTwoSidedDerivative)
                     {
                         // calcualte derivative 
-                        if (useParallel)
+                        if (modelProvidesDerivatives)
                             {
                                 // get the derivative from the model
                                 Df = _simModel.GetDerivativeEstimate(x, step_Df);
@@ -154,8 +155,8 @@ namespace ComputationLib
                 Vector<double> nDf = Df.Normalize(p: 2);
 
                 // find a new x: x_new = x - stepSize*f'(x)
-                double step_p = _stepSize_a.GetValue(itr);
-                x = x - step_p * nDf;
+                double step_a = _stepSize_a.GetValue(itr);
+                x = x - step_a * nDf;
 
                 // get f(x)
                 f = _simModel.GetAReplication(x, ifResampleSeeds: true);
@@ -166,7 +167,7 @@ namespace ComputationLib
                 Itr_f.Add(f);
                 Itr_Df.Add(nDf);
                 Itr_step_Df.Add(step_Df);
-                Itr_step_p.Add(step_p);
+                Itr_step_a.Add(step_a);
             }
 
             // store the optimal x and optimal objective value 
@@ -183,7 +184,7 @@ namespace ComputationLib
             // assumed 0 for the derivative at xStar
             Itr_Df.Add(Vector<double>.Build.DenseOfArray(new double[x.Count]));
             Itr_step_Df.Add(double.NaN);
-            Itr_step_p.Add(double.NaN);
+            Itr_step_a.Add(double.NaN);
         }
 
         public double[,] GetResultsInAMatrix()
@@ -208,7 +209,7 @@ namespace ComputationLib
                 
                 // steps
                 result[itr, j++] = Itr_step_Df[itr];
-                result[itr, j++] = Itr_step_p[itr];
+                result[itr, j++] = Itr_step_a[itr];
             }
             return result;
         }
@@ -225,14 +226,14 @@ namespace ComputationLib
             for (int i = 0; i < xStar.Count; i++)
                 colHeader.Add("Df" + i);
             colHeader.Add("Step_Df");
-            colHeader.Add("Step_a");            
+            colHeader.Add("Step_a");
 
             DelimitedWriter.Write(filename, matrix, ",", columnHeaders: colHeader);
         }
 
         public string Get_a_c()
         {
-            return "a" + _stepSize_a.a0 + "-" + _stepSize_Df.c0; //.ToString("F2")
+            return "a" + _stepSize_a.a0 + "-c" + _stepSize_Df.c0; //.ToString("F2")
         }
         public double Get_a0()
         {
@@ -244,7 +245,7 @@ namespace ComputationLib
         }
     }
 
-    public class MultiStochasticApproximation
+    public class ParallelStochasticApproximation
     {
         List<StochasticApproximation> stochasticApproximations = new List<StochasticApproximation>();
         public double fStar { get; private set; } = double.MaxValue;
@@ -252,17 +253,18 @@ namespace ComputationLib
         public double aStar { get; private set; } = double.NaN;
         public double cStar { get; private set; } = double.NaN;
 
-        public MultiStochasticApproximation(SimModel simModel, double[] stepSize_as, double[] stepSize_cs)
+        public ParallelStochasticApproximation(List<SimModel> simModels, double[] stepSize_as, double[] stepSize_cs)
         {
 
             // build the stochastic approximations
+            int i = 0;
             foreach (double a in stepSize_as)
             {
                 foreach (double c in stepSize_cs)
                 {
                     stochasticApproximations.Add(
                         new StochasticApproximation(
-                            simModel: simModel,
+                            simModel: simModels[i++],
                             stepSize_a: new StepSize_a(a),
                             stepSize_Df: new StepSize_Df(c))
                             );                    
@@ -270,7 +272,8 @@ namespace ComputationLib
             }
         }
 
-        public void Minimize(int maxItrs, int nLastItrsToAve, Vector<double> x0, bool ifTwoSidedDerivative = true, bool ifParallel = true)
+        public void Minimize(int maxItrs, int nLastItrsToAve, Vector<double> x0, 
+            bool ifTwoSidedDerivative = true, bool ifParallel = true)
         {
             if (ifParallel && stochasticApproximations.Count > 1)
             {

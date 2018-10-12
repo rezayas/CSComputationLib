@@ -14,7 +14,7 @@ namespace TestStochApproximation
         static void Main(string[] args)
         {
 
-            StochasticApproximation optProb = new StochasticApproximation(
+            StochasticApproximation optimization = new StochasticApproximation(
                 simModel: new TestBedX2Y2XY(errorVar: 10),
                 stepSize_a: new StepSize_a(a0: 20),
                 stepSize_Df: new StepSize_Df(c0: 1)
@@ -24,16 +24,17 @@ namespace TestStochApproximation
             double[] x0 = new double[2] { -10, 20 }; 
             
             // minimize
-            optProb.Minimize(
+            optimization.Minimize(
                 maxItrs: 5000,
                 nLastItrsToAve: 500,
                 x0: Vector<double>.Build.DenseOfArray(x0), 
                 ifTwoSidedDerivative: true);
 
-            Console.WriteLine("Optimal x:" + optProb.xStar);
-            Console.WriteLine("Optimal f:" + optProb.fStar);
-            optProb.ExportResultsToCSV("TestX2Y2.csv");
-            
+            Console.WriteLine("Optimal x: " + optimization.xStar);
+            Console.WriteLine("Optimal f: " + optimization.fStar);
+            optimization.ExportResultsToCSV("TestX2Y2.csv");
+
+            Console.ReadKey();
         }
     }
 }
