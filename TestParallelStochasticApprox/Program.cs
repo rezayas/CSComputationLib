@@ -39,7 +39,8 @@ namespace TestParallelStochasticApprox
                 nLastItrsToAve: 500,
                 x0: Vector<double>.Build.DenseOfArray(x0),
                 ifTwoSidedDerivative: true,
-                ifParallel: true
+                ifParallel: true, 
+                modelProvidesDerivatives: false
                 );
 
             Console.WriteLine("Optimal x: " + optimization.xStar);

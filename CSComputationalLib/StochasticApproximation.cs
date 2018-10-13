@@ -119,22 +119,22 @@ namespace ComputationLib
 
                 // estimate the derivative of f at x
                 Vector<double> Df = Vector<double>.Build.Dense(x0.Count());
-                
-                // build epsilon matrix
-                Matrix<double> epsilonMatrix = Matrix<double>.Build.DenseDiagonal(x0.Count(), step_Df);
 
-                for (int i = 0; i < x0.Count(); i++)
+                // calcualte derivative 
+                if (modelProvidesDerivatives)
                 {
-                    if (ifTwoSidedDerivative)
+                    // get the derivative from the model
+                    Df = _simModel.GetDerivativeEstimate(x, step_Df);
+                }
+                else
+                {
+                    // build epsilon matrix
+                    Matrix<double> epsilonMatrix = Matrix<double>.Build.DenseDiagonal(x0.Count(), step_Df);
+
+                    for (int i = 0; i < x0.Count(); i++)
                     {
-                        // calcualte derivative 
-                        if (modelProvidesDerivatives)
-                            {
-                                // get the derivative from the model
-                                Df = _simModel.GetDerivativeEstimate(x, step_Df);
-                            }
-                        else
-                        {
+                        if (ifTwoSidedDerivative)
+                        {                         
                             // estimate the derivative here
                             Df[i] =
                                 (
@@ -142,12 +142,12 @@ namespace ComputationLib
                                 _simModel.GetAReplication(x - epsilonMatrix.Row(i), ifResampleSeeds: false)
                                 ) / (2 * step_Df);
                         }
-                    }
-                    else
-                    {
-                        Df[i] = 
-                            (_simModel.GetAReplication(x + epsilonMatrix.Row(i), ifResampleSeeds: false) - f) 
-                            / step_Df;
+                        else
+                        {
+                            Df[i] =
+                                (_simModel.GetAReplication(x + epsilonMatrix.Row(i), ifResampleSeeds: false) - f)
+                                / step_Df;
+                        }
                     }
                 }
 
@@ -273,20 +273,20 @@ namespace ComputationLib
         }
 
         public void Minimize(int maxItrs, int nLastItrsToAve, Vector<double> x0, 
-            bool ifTwoSidedDerivative = true, bool ifParallel = true)
+            bool ifTwoSidedDerivative = true, bool ifParallel = true, bool modelProvidesDerivatives = false)
         {
             if (ifParallel && stochasticApproximations.Count > 1)
             {
                 Parallel.ForEach(stochasticApproximations, stocApprx =>
                 {
-                    stocApprx.Minimize(maxItrs, nLastItrsToAve, x0, ifTwoSidedDerivative);
+                    stocApprx.Minimize(maxItrs, nLastItrsToAve, x0, ifTwoSidedDerivative, modelProvidesDerivatives);
                 });
             }
             else
             {
                 foreach (StochasticApproximation stocApprx in stochasticApproximations)
                 {
-                    stocApprx.Minimize(maxItrs, nLastItrsToAve, x0, ifTwoSidedDerivative);
+                    stocApprx.Minimize(maxItrs, nLastItrsToAve, x0, ifTwoSidedDerivative, modelProvidesDerivatives);
                 }
             }
 
