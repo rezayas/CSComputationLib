@@ -20,7 +20,7 @@ namespace TestParallelStochasticApprox
             foreach (double a in stepSize_as)
                 foreach (double c in stepSize_cs)
                     models.Add(
-                        new TestBedX2Y2XY(errorVar: 100)
+                        new TestBedX2Y2XY(errorVar: 10)
                         );
 
             // build a parallel optimizer
@@ -31,11 +31,11 @@ namespace TestParallelStochasticApprox
                 ); 
 
             // initial value of x
-            double[] x0 = new double[2] { -10, 20 };
+            double[] x0 = new double[2] { -100, 200 };
 
             // minimize
             optimization.Minimize(
-                maxItrs: 500,
+                maxItrs: 5000,
                 nLastItrsToAve: 500,
                 x0: Vector<double>.Build.DenseOfArray(x0),
                 ifTwoSidedDerivative: true,

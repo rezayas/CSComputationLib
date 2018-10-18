@@ -54,7 +54,7 @@ namespace ComputationLib
         }
         public double GetValue(int itr)
         {
-            return a0 / itr;
+            return a0 / (itr+1);
         }
     }
 
@@ -68,7 +68,7 @@ namespace ComputationLib
         }
         public double GetValue(int itr)
         {
-            return c0 * Math.Pow(itr, -0.25);
+            return c0 * Math.Pow(itr+1, -0.25);
         }
     }
 
@@ -104,16 +104,14 @@ namespace ComputationLib
 
             // iteration 0
             Vector<double> x = x0;
-            double f = _simModel.GetAReplication(x, ifResampleSeeds: true);
-
-            // store information at iteration 0
-            Itr_i.Add(0);
-            Itr_x.Add(x);
-            Itr_f.Add(f);            
+            double f;         
 
             // iterations of the algorithm
-            for (int itr = 1; itr <= maxItrs; itr++)
+            for (int itr = 0; itr < maxItrs; itr++)
             {
+                // get f(x)
+                f = _simModel.GetAReplication(x, ifResampleSeeds: true);
+
                 // current derivative step size
                 double step_Df = _stepSize_Df.GetValue(itr);                
 
@@ -125,6 +123,11 @@ namespace ComputationLib
                 {
                     // get the derivative from the model
                     Df = _simModel.GetDerivativeEstimate(x, step_Df);
+                    if (Df.Norm(2) <= 0 && Itr_x.Count > 1)
+                    {
+                        //x = Itr_x[Itr_x.Count - 1];
+                        //Df = _simModel.GetDerivativeEstimate(x, step_Df);
+                    }
                 }
                 else
                 {
@@ -153,13 +156,9 @@ namespace ComputationLib
 
                 // normalize derivative
                 Vector<double> nDf = Df.Normalize(p: 2);
-
-                // find a new x: x_new = x - stepSize*f'(x)
+                
+                // find step size
                 double step_a = _stepSize_a.GetValue(itr);
-                x = x - step_a * nDf;
-
-                // get f(x)
-                f = _simModel.GetAReplication(x, ifResampleSeeds: true);
 
                 // store information of this iteration 
                 Itr_i.Add(itr);
@@ -168,6 +167,9 @@ namespace ComputationLib
                 Itr_Df.Add(nDf);
                 Itr_step_Df.Add(step_Df);
                 Itr_step_a.Add(step_a);
+
+                // find a new x: x_new = x - stepSize*f'(x)
+                x = x - step_a * nDf;              
             }
 
             // store the optimal x and optimal objective value 
@@ -180,11 +182,6 @@ namespace ComputationLib
             }
             xStar = xSum / nLastItrsToAve;
             fStar = fSum / nLastItrsToAve;
-
-            // assumed 0 for the derivative at xStar
-            Itr_Df.Add(Vector<double>.Build.DenseOfArray(new double[x.Count]));
-            Itr_step_Df.Add(double.NaN);
-            Itr_step_a.Add(double.NaN);
         }
 
         public double[,] GetResultsInAMatrix()
