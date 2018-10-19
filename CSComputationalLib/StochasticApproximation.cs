@@ -44,20 +44,22 @@ namespace ComputationLib
         }
     }
 
-    public class StepSize_a
+    public class StepSize_GH
     {
+        // generalized harmonic (GH) stepsize
         // step_n = a * b / (b + n) for n >= 0, a > 0, and b >= 1
 
         public double a0 { get; }
         public double b { get; }
 
-        public StepSize_a(double a0, double b=0)
+        public StepSize_GH(double a0, double b=1)
         {
             this.a0 = a0;
+            this.b = b;
         }
         public double GetValue(int itr)
         {
-            return a0 / (itr+1);
+            return a0 * b/ (itr + b);
         }
     }
 
@@ -77,7 +79,7 @@ namespace ComputationLib
 
     public class StochasticApproximation
     {
-        private StepSize_a _stepSize_a = null;
+        private StepSize_GH _stepSize_GH = null;
         private StepSize_Df _stepSize_Df = null;
         private SimModel _simModel = null;
 
@@ -86,15 +88,15 @@ namespace ComputationLib
         public List<double> Itr_f { get; private set; } = new List<double>();
         public List<Vector<double>> Itr_Df { get; private set; } = new List<Vector<double>>();
         public List<double> Itr_step_Df { get; private set; } = new List<double>();
-        public List<double> Itr_step_a { get; private set; } = new List<double>();
+        public List<double> Itr_step_GH { get; private set; } = new List<double>();
 
         public Vector<double> xStar { get; private set; }
         public double fStar { get; private set; }
 
-        public StochasticApproximation(SimModel simModel, StepSize_a stepSize_a, StepSize_Df stepSize_Df)
+        public StochasticApproximation(SimModel simModel, StepSize_GH stepSize_a, StepSize_Df stepSize_Df)
         {
             _simModel = simModel;
-            _stepSize_a = stepSize_a;
+            _stepSize_GH = stepSize_a;
             _stepSize_Df = stepSize_Df;
         }
 
@@ -161,7 +163,7 @@ namespace ComputationLib
                 Vector<double> nDf = Df.Normalize(p: 2);
                 
                 // find step size
-                double step_a = _stepSize_a.GetValue(itr);
+                double step_GH = _stepSize_GH.GetValue(itr);
 
                 // store information of this iteration 
                 Itr_i.Add(itr);
@@ -169,10 +171,10 @@ namespace ComputationLib
                 Itr_f.Add(f);
                 Itr_Df.Add(nDf);
                 Itr_step_Df.Add(step_Df);
-                Itr_step_a.Add(step_a);
+                Itr_step_GH.Add(step_GH);
 
                 // find a new x: x_new = x - stepSize*f'(x)
-                x = x - step_a * nDf;              
+                x = x - step_GH * nDf;              
             }
 
             // store the optimal x and optimal objective value 
@@ -209,7 +211,7 @@ namespace ComputationLib
                 
                 // steps
                 result[itr, j++] = Itr_step_Df[itr];
-                result[itr, j++] = Itr_step_a[itr];
+                result[itr, j++] = Itr_step_GH[itr];
             }
             return result;
         }
@@ -226,18 +228,22 @@ namespace ComputationLib
             for (int i = 0; i < xStar.Count; i++)
                 colHeader.Add("Df" + i);
             colHeader.Add("Step_Df");
-            colHeader.Add("Step_a");
+            colHeader.Add("Step_GH");
 
             DelimitedWriter.Write(filename, matrix, ",", columnHeaders: colHeader);
         }
 
-        public string Get_a_c()
+        public string Get_a0_b_c0()
         {
-            return "a" + _stepSize_a.a0 + "-c" + _stepSize_Df.c0; //.ToString("F2")
+            return "a0" + _stepSize_GH.a0 + "-b" + _stepSize_GH.b + "-c0" + _stepSize_Df.c0; //.ToString("F2")
         }
         public double Get_a0()
         {
-            return _stepSize_a.a0;
+            return _stepSize_GH.a0;
+        }
+        public double Get_b()
+        {
+            return _stepSize_GH.b;
         }
         public double Get_c0()
         {
@@ -250,24 +256,28 @@ namespace ComputationLib
         List<StochasticApproximation> stochasticApproximations = new List<StochasticApproximation>();
         public double fStar { get; private set; } = double.MaxValue;
         public Vector<double> xStar { get; private set; }
-        public double aStar { get; private set; } = double.NaN;
-        public double cStar { get; private set; } = double.NaN;
+        public double a0Star { get; private set; } = double.NaN;
+        public double bStar { get; private set; } = double.NaN;
+        public double c0Star { get; private set; } = double.NaN;
 
-        public ParallelStochasticApproximation(List<SimModel> simModels, double[] stepSize_as, double[] stepSize_cs)
+        public ParallelStochasticApproximation(List<SimModel> simModels, double[] stepSizeGH_a0s, double[] stepSizeGH_bs, double[] stepSizeDf_cs)
         {
 
             // build the stochastic approximations
             int i = 0;
-            foreach (double a in stepSize_as)
+            foreach (double a0 in stepSizeGH_a0s)
             {
-                foreach (double c in stepSize_cs)
+                foreach (double b in stepSizeGH_bs)
                 {
-                    stochasticApproximations.Add(
-                        new StochasticApproximation(
-                            simModel: simModels[i++],
-                            stepSize_a: new StepSize_a(a),
-                            stepSize_Df: new StepSize_Df(c))
-                            );                    
+                    foreach (double c in stepSizeDf_cs)
+                    {
+                        stochasticApproximations.Add(
+                            new StochasticApproximation(
+                                simModel: simModels[i++],
+                                stepSize_a: new StepSize_GH(a0, b),
+                                stepSize_Df: new StepSize_Df(c))
+                                );
+                    }
                 }
             }
         }
@@ -301,8 +311,9 @@ namespace ComputationLib
                 {
                     fStar = stocApprx.fStar;
                     xStar = stocApprx.xStar;
-                    aStar = stocApprx.Get_a0();
-                    cStar = stocApprx.Get_c0();
+                    a0Star = stocApprx.Get_a0();
+                    bStar = stocApprx.Get_b();
+                    c0Star = stocApprx.Get_c0();
                 }
             }
         }
@@ -311,7 +322,7 @@ namespace ComputationLib
         {
             foreach (StochasticApproximation stocApprx in stochasticApproximations)
             {
-                stocApprx.ExportResultsToCSV(filename + stocApprx.Get_a_c() + ".csv");
+                stocApprx.ExportResultsToCSV(filename + stocApprx.Get_a0_b_c0() + ".csv");
             }
         }
     }

@@ -12,22 +12,25 @@ namespace TestParallelStochasticApprox
     {
         static void Main(string[] args)
         {
-            double[] stepSize_as = new double[5] { 10, 25, 50, 75, 100 };
-            double[] stepSize_cs = new double[4] { 1, 5, 10, 25};
+            double[] stepSizeGH_a0s = new double[2] { 10, 2};
+            double[] stepSizeGH_bs = new double[2] { 1, 10};
+            double[] stepSizeDf_cs = new double[2] { 1, 5};
 
             // build models
             List<SimModel> models = new List<SimModel>();
-            foreach (double a in stepSize_as)
-                foreach (double c in stepSize_cs)
-                    models.Add(
-                        new TestBedX2Y2XY(errorVar: 10)
-                        );
+            foreach (double a in stepSizeGH_a0s)
+                foreach (double b in stepSizeGH_bs)
+                    foreach (double c in stepSizeDf_cs)
+                        models.Add(
+                            new TestBedX2Y2XY(errorVar: 10)
+                            );
 
             // build a parallel optimizer
             ParallelStochasticApproximation optimization = new ParallelStochasticApproximation(
                 simModels: models,
-                stepSize_as: stepSize_as,
-                stepSize_cs: stepSize_cs
+                stepSizeGH_a0s: stepSizeGH_a0s,
+                stepSizeGH_bs: stepSizeGH_bs,
+                stepSizeDf_cs: stepSizeDf_cs
                 ); 
 
             // initial value of x
@@ -45,8 +48,9 @@ namespace TestParallelStochasticApprox
 
             Console.WriteLine("Optimal x: " + optimization.xStar);
             Console.WriteLine("Optimal f: " + optimization.fStar);
-            Console.WriteLine("Optimal a0: " + optimization.aStar);
-            Console.WriteLine("Optimal c0: " + optimization.cStar);
+            Console.WriteLine("Optimal a0: " + optimization.a0Star);
+            Console.WriteLine("Optimal b: " + optimization.bStar);
+            Console.WriteLine("Optimal c0: " + optimization.c0Star);
             optimization.ExportResultsToCSV("TestX2Y2");
 
             Console.ReadKey();

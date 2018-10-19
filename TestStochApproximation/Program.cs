@@ -15,13 +15,13 @@ namespace TestStochApproximation
         {
 
             StochasticApproximation optimization = new StochasticApproximation(
-                simModel: new TestBedX2Y2XY(errorVar: 10),
-                stepSize_a: new StepSize_a(a0: 20),
-                stepSize_Df: new StepSize_Df(c0: 1)
+                simModel: new TestBedX2Y2XY(errorVar: 100),
+                stepSize_a: new StepSize_GH(a0: 20, b: 10),
+                stepSize_Df: new StepSize_Df(c0: 5)
                 );
 
             // initial value of x
-            double[] x0 = new double[2] { -10, 20 }; 
+            double[] x0 = new double[2] { -100, 200 }; 
             
             // minimize
             optimization.Minimize(
