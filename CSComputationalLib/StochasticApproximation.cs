@@ -46,9 +46,12 @@ namespace ComputationLib
 
     public class StepSize_a
     {
-        public double a0 { get; }
+        // step_n = a * b / (b + n) for n >= 0, a > 0, and b >= 1
 
-        public StepSize_a(double a0)
+        public double a0 { get; }
+        public double b { get; }
+
+        public StepSize_a(double a0, double b=0)
         {
             this.a0 = a0;
         }
