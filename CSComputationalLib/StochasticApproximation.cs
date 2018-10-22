@@ -10,10 +10,15 @@ namespace ComputationLib
 {
 
     public abstract class SimModel
-    {
+    {        
         public abstract double GetAReplication(Vector<double> x, bool ifResampleSeeds = true);
         public virtual Vector<double> GetDerivativeEstimate(Vector<double> x, double derivative_step) { return null; }
         public virtual void ResetSeedAtItr0() { }
+
+        public virtual void Sample_f_and_Df(Vector<double> x, double derivative_step, bool ifResampleSeeds = true) { }
+        public virtual double Get_f() { return 0; }
+        public virtual Vector<double> Get_Df() { return null; }
+        
     }
 
     public class TestBedX2Y2XY : SimModel
@@ -114,9 +119,6 @@ namespace ComputationLib
             // iterations of the algorithm
             for (int itr = 0; itr < maxItrs; itr++)
             {
-                // get f(x)
-                f = _simModel.GetAReplication(x, ifResampleSeeds: true);
-
                 // current derivative step size
                 double step_Df = _stepSize_Df.GetValue(itr);                
 
@@ -126,16 +128,21 @@ namespace ComputationLib
                 // calcualte derivative 
                 if (modelProvidesDerivatives)
                 {
+                    // calcualte f and Df 
+                    _simModel.Sample_f_and_Df(x, step_Df, ifResampleSeeds: true);
+
+                    // get f(x)
+                    f = _simModel.Get_f();
+
                     // get the derivative from the model
-                    Df = _simModel.GetDerivativeEstimate(x, step_Df);
-                    if (Df.Norm(2) <= 0 && Itr_x.Count > 1)
-                    {
-                        //x = Itr_x[Itr_x.Count - 1];
-                        //Df = _simModel.GetDerivativeEstimate(x, step_Df);
-                    }
+                    Df = _simModel.Get_Df();
+                    
                 }
                 else
                 {
+                    // get f(x)
+                    f = _simModel.GetAReplication(x, ifResampleSeeds: true);
+
                     // build epsilon matrix
                     Matrix<double> epsilonMatrix = Matrix<double>.Build.DenseDiagonal(x0.Count(), step_Df);
 
@@ -235,7 +242,7 @@ namespace ComputationLib
 
         public string Get_a0_b_c0()
         {
-            return "a0" + _stepSize_GH.a0 + "-b" + _stepSize_GH.b + "-c0" + _stepSize_Df.c0; //.ToString("F2")
+            return "a0-" + _stepSize_GH.a0 + "- b-" + _stepSize_GH.b + "- c0-" + _stepSize_Df.c0; //.ToString("F2")
         }
         public double Get_a0()
         {
