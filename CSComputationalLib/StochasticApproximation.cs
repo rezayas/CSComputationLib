@@ -10,8 +10,8 @@ namespace ComputationLib
 {
 
     public abstract class SimModel
-    {        
-        public abstract double GetAReplication(Vector<double> x, bool ifResampleSeeds = true);
+    {
+        public virtual double GetAReplication(Vector<double> x, bool ifResampleSeeds = true) { return 0; }
         public virtual Vector<double> GetDerivativeEstimate(Vector<double> x, double derivative_step) { return null; }
         public virtual void ResetSeedAtItr0() { }
 
