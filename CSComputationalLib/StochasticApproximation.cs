@@ -52,7 +52,7 @@ namespace ComputationLib
     public class StepSize_GH
     {
         // generalized harmonic (GH) stepsize
-        // step_n = a * b / (b + n) for n >= 0, a > 0, and b >= 1
+        // step_n = a0 * b / (b + n) for n >= 0, a0 > 0, and b >= 1
 
         public double a0 { get; }
         public double b { get; }
