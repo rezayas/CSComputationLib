@@ -190,8 +190,11 @@ namespace ComputationLib
                 Itr_step_GH.Add(step_GH);
 
                 // find a new x: x_new = x - stepSize*f'(x)
+                Vector<double> tempX = Vector<double>.Build.Dense(x.Count);
                 for (int i = 0; i < x.Count; i++)
-                    x[i] = x[i] - step_GH * nDf[i] * xScale[i];              
+                    tempX[i] = x[i] - step_GH * nDf[i] * xScale[i];
+
+                x = tempX;
             }
 
             // store the optimal x and optimal objective value 
