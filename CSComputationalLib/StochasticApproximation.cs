@@ -15,7 +15,12 @@ namespace ComputationLib
         public virtual Vector<double> GetDerivativeEstimate(Vector<double> x, double derivative_step) { return null; }
         public virtual void ResetSeedAtItr0() { }
 
-        public virtual void Sample_f_and_Df(Vector<double> x, double derivative_step, bool ifResampleSeeds = true) { }
+        public virtual void Sample_f_and_Df(
+            Vector<double> x, 
+            double derivative_step, 
+            Vector<double> xScale = null,
+            bool ifResampleSeeds = true) { }
+
         public virtual double Get_f() { return 0; }
         public virtual Vector<double> Get_Df() { return null; }
         
@@ -105,9 +110,13 @@ namespace ComputationLib
             _stepSize_Df = stepSize_Df;
         }
 
-        public void Minimize(int maxItrs, int nLastItrsToAve, Vector<double> x0, 
+        public void Minimize(int maxItrs, int nLastItrsToAve, Vector<double> x0, Vector<double> xScale = null,
             bool ifTwoSidedDerivative = true, bool modelProvidesDerivatives = false)
         {
+
+            if (xScale is null)
+                xScale = Vector<double>.Build.Dense(length: x0.Count, value: 1);
+
             // reset seed of the simulation model at iteration 0
             // note that this method could be empty if there is no need to reset the seed 
             _simModel.ResetSeedAtItr0();
@@ -129,7 +138,7 @@ namespace ComputationLib
                 if (modelProvidesDerivatives)
                 {
                     // calcualte f and Df 
-                    _simModel.Sample_f_and_Df(x, step_Df, ifResampleSeeds: true);
+                    _simModel.Sample_f_and_Df(x, step_Df, xScale: xScale, ifResampleSeeds: true);
 
                     // get f(x)
                     f = _simModel.Get_f();
@@ -153,15 +162,15 @@ namespace ComputationLib
                             // estimate the derivative here
                             Df[i] =
                                 (
-                                _simModel.GetAReplication(x + epsilonMatrix.Row(i), ifResampleSeeds: false) -
-                                _simModel.GetAReplication(x - epsilonMatrix.Row(i), ifResampleSeeds: false)
-                                ) / (2 * step_Df);
+                                _simModel.GetAReplication(x + epsilonMatrix.Row(i) * xScale[i], ifResampleSeeds: false) -
+                                _simModel.GetAReplication(x - epsilonMatrix.Row(i) * xScale[i], ifResampleSeeds: false)
+                                ) / (2 * step_Df * xScale[i]);
                         }
                         else
                         {
                             Df[i] =
-                                (_simModel.GetAReplication(x + epsilonMatrix.Row(i), ifResampleSeeds: false) - f)
-                                / step_Df;
+                                (_simModel.GetAReplication(x + epsilonMatrix.Row(i) * xScale[i], ifResampleSeeds: false) - f)
+                                / (step_Df * xScale[i]);
                         }
                     }
                 }
@@ -181,7 +190,8 @@ namespace ComputationLib
                 Itr_step_GH.Add(step_GH);
 
                 // find a new x: x_new = x - stepSize*f'(x)
-                x = x - step_GH * nDf;              
+                for (int i = 0; i < x.Count; i++)
+                    x[i] = x[i] - step_GH * nDf[i] * xScale[i];              
             }
 
             // store the optimal x and optimal objective value 
@@ -289,21 +299,21 @@ namespace ComputationLib
             }
         }
 
-        public void Minimize(int maxItrs, int nLastItrsToAve, Vector<double> x0, 
+        public void Minimize(int maxItrs, int nLastItrsToAve, Vector<double> x0, Vector<double> xScale = null,
             bool ifTwoSidedDerivative = true, bool ifParallel = true, bool modelProvidesDerivatives = false)
         {
             if (ifParallel && stochasticApproximations.Count > 1)
             {
                 Parallel.ForEach(stochasticApproximations, stocApprx =>
                 {
-                    stocApprx.Minimize(maxItrs, nLastItrsToAve, x0, ifTwoSidedDerivative, modelProvidesDerivatives);
+                    stocApprx.Minimize(maxItrs, nLastItrsToAve, x0, xScale, ifTwoSidedDerivative, modelProvidesDerivatives);
                 });
             }
             else
             {
                 foreach (StochasticApproximation stocApprx in stochasticApproximations)
                 {
-                    stocApprx.Minimize(maxItrs, nLastItrsToAve, x0, ifTwoSidedDerivative, modelProvidesDerivatives);
+                    stocApprx.Minimize(maxItrs, nLastItrsToAve, x0, xScale, ifTwoSidedDerivative, modelProvidesDerivatives);
                 }
             }
 
