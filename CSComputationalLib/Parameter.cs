@@ -20,9 +20,10 @@ namespace ComputationLib
             LinearCombination = 3,
             Product = 4,
             Multiplicative = 5,
-            TimeDependetLinear = 6,
-            TimeDependetOscillating = 7,
-            ComorbidityDisutility = 8,
+            TimeDependentLinear = 6,
+            TimeDependentOscillating = 7,
+            TimeDependentExponential = 8,
+            ComorbidityDisutility = 9,
         }
 
         public int ID { get; }
@@ -57,10 +58,13 @@ namespace ComputationLib
                     thisEnum = EnumType.Multiplicative;
                     break;
                 case "time-dependent linear":
-                    thisEnum = EnumType.TimeDependetLinear;
+                    thisEnum = EnumType.TimeDependentLinear;
                     break;
                 case "time-dependent oscillating":
-                    thisEnum = EnumType.TimeDependetOscillating;
+                    thisEnum = EnumType.TimeDependentOscillating;
+                    break;
+                case "time-dependent exponential":
+                    thisEnum = EnumType.TimeDependentExponential;
                     break;
                 case "comorbidity disutility":
                     thisEnum = EnumType.ComorbidityDisutility;
@@ -222,7 +226,7 @@ namespace ComputationLib
         public TimeDependetLinear(int ID, string name, int interceptParID, int slopeParID, double timeOn, double timeOff)
             : base(ID, name)
         {
-            _type = EnumType.TimeDependetLinear;
+            _type = EnumType.TimeDependentLinear;
             _shouldBeUpdatedByTime = true;
 
             InterceptParID = interceptParID;
@@ -241,7 +245,6 @@ namespace ComputationLib
 
             return _value;
         }
-
     }
 
     public class TimeDependetOscillating : Parameter
@@ -255,7 +258,7 @@ namespace ComputationLib
         public TimeDependetOscillating(int ID, string name, int a0ParID, int a1ParID, int a2ParID, int a3ParID)
             : base(ID, name)
         {
-            _type = EnumType.TimeDependetOscillating;
+            _type = EnumType.TimeDependentOscillating;
             _shouldBeUpdatedByTime = true;
 
             this.a0ParID = a0ParID;
@@ -270,7 +273,37 @@ namespace ComputationLib
             _value = a0 + a1 * Math.Cos((time+a2)*2*Math.PI/a3);
             return _value; 
         }
+    }
 
+    public class TimeDependentExponential : Parameter
+    {
+        public int minParID { get; }
+        public int maxParID { get; }
+        public int bParID { get; }
+        public int tStartParID { get; }
+
+        // Instantiation 
+        public TimeDependentExponential(int ID, string name, int bParID, int minParID, int maxParID, int tStartParID)
+            : base(ID, name)
+        {
+            _type = EnumType.TimeDependentExponential;
+            _shouldBeUpdatedByTime = true;
+
+            this.minParID = minParID;
+            this.maxParID = maxParID;
+            this.bParID = bParID;
+            this.tStartParID = tStartParID;
+        }
+
+        // sample this parameter
+        public double Sample(double time, double b, double min, double max, double tStart)
+        {
+            if (time >= tStart)
+                _value = max - (max - min) * Math.Exp(-b * (time - tStart));
+            else
+                _value = min;
+            return _value;
+        }
     }
 
     public class ComorbidityDisutility : Parameter
