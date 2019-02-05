@@ -8,11 +8,6 @@ namespace ComputationLib
 {
     public abstract class Parameter
     {
-        protected double _value = 0;
-        protected EnumType _type;
-        protected bool _includedInCalibration;
-        protected bool _shouldBeUpdatedByTime;
-
         public enum EnumType
         {
             Independet = 1,     // random variate generator
@@ -28,16 +23,15 @@ namespace ComputationLib
 
         public int ID { get; }
         public string Name { get; }
-        public double Value { get => _value; }
-        public bool IncludedInCalibration { get => _includedInCalibration; set => _includedInCalibration = value; }
-        public bool ShouldBeUpdatedByTime { get => _shouldBeUpdatedByTime; set => _shouldBeUpdatedByTime = value; }
-        public EnumType Type { get => _type; }
+        public double Value { get; protected set; } = 0;
+        public bool IncludedInCalibration { get ; set ; }
+        public bool ShouldBeUpdatedByTime { get ; set ; }
+        public EnumType Type { get; protected set; }
 
         public Parameter(int id, string name)
         {
             ID = id;
             Name = name;
-            _value = 0;
         }
 
         public static EnumType FindParameterType(string type)
@@ -93,7 +87,7 @@ namespace ComputationLib
             _par2 = par2;
             _par3 = par3;
             _par4 = par4;
-            _type = EnumType.Independet;
+            Type = EnumType.Independet;
 
             _RVG = SupportProcedures.ReturnARandomVariateGenerator(enumRandomVariateGenerator, name, par1, par2, par3, par4);
         }
@@ -101,8 +95,8 @@ namespace ComputationLib
         // sample this parameter
         public double Sample(RNG rng)
         {
-            _value = _RVG.SampleContinuous(rng);
-            return _value;
+            Value = _RVG.SampleContinuous(rng);
+            return Value;
         }
 
         public double[] GetEquallyDistancedPoints(int nOfPoints)
@@ -114,26 +108,25 @@ namespace ComputationLib
 
     public class CorrelatedParameter : Parameter
     {
-        public int IDOfDepedentPar { get; }
+        private Parameter _depedentPar;
         private double _slope, _intercept;
 
         // Instantiation
-        public CorrelatedParameter(int ID, string name, int idOfDepedentPar, double slope, double intercept) 
+        public CorrelatedParameter(int ID, string name, Parameter depedentPar, double slope, double intercept) 
             : base(ID, name)
         {
-            _type = EnumType.Correlated;
-            IDOfDepedentPar = idOfDepedentPar;
+            Type = EnumType.Correlated;
+            _depedentPar = depedentPar;
             _slope = slope;
             _intercept = intercept;
         }
 
         // sample this parameter
-        public double Sample(double valueOfDependentPar)
+        public double Sample()
         {
-            _value = _slope * valueOfDependentPar + _intercept;
-            return _value;
+            Value = _slope * _depedentPar.Value + _intercept;
+            return Value;
         }
-
     } 
 
     public class LinearCombination : Parameter
@@ -144,7 +137,7 @@ namespace ComputationLib
         public LinearCombination(int ID, string name, int[] parIDs, double[] coefficients) 
             : base(ID,name)
         {
-            _type = EnumType.LinearCombination;
+            Type = EnumType.LinearCombination;
             this.ParIDs = (int[])parIDs.Clone();
             _arrCoefficients = (double[])coefficients.Clone();
         }
@@ -155,10 +148,10 @@ namespace ComputationLib
         // sample this parameters
         public double Sample(double[] valuesOfParams)
         {
-            _value =0;
+            Value =0;
             for (int i = 0; i < valuesOfParams.Length; i++)
-                _value += _arrCoefficients[i] * valuesOfParams[i];
-            return _value;
+                Value += _arrCoefficients[i] * valuesOfParams[i];
+            return Value;
         }
 
     }
@@ -169,7 +162,7 @@ namespace ComputationLib
         public ProductParameter(int ID, string name, int[] parIDs)
             : base(ID, name)
         {
-            _type = EnumType.Product;
+            Type = EnumType.Product;
             this.ParIDs = (int[])parIDs.Clone();
         }
 
@@ -179,40 +172,38 @@ namespace ComputationLib
         // sample this parameters
         public double Sample(double[] valueOfParams)
         {
-            _value = 1;
+            Value = 1;
             for (int i = 0; i < valueOfParams.Length; i++)
-                _value *= valueOfParams[i];
-            return _value;
+                Value *= valueOfParams[i];
+            return Value;
         }
     }
 
     public class MultiplicativeParameter : Parameter
     {
         bool _inverseFirstParameter;
+        private Parameter _par1;
+        private Parameter _par2;
 
         // Instantiation
-        public MultiplicativeParameter(int ID, string name, int par1ID, int par2ID, bool ifInversePar1)
+        public MultiplicativeParameter(int ID, string name, Parameter par1, Parameter par2, bool ifInversePar1)
             : base(ID, name)
         {
-            _type = EnumType.Multiplicative;
-            FirstParameterID = par1ID;
-            SecondParameterID = par2ID;
+            Type = EnumType.Multiplicative;
+            _par1 = par1;
+            _par2 = par2;
             _inverseFirstParameter = ifInversePar1;
         }
-        // Properties 
-        public int FirstParameterID { get; }
-        public int SecondParameterID { get; }
 
         // sample this parameter
-        public double Sample(double valueOfPar1, double valueOfPar2)
+        public double Sample()
         {
             if (_inverseFirstParameter)
-                _value = valueOfPar2 / valueOfPar1;                
+                Value = _par2.Value / _par1.Value;                
             else
-                _value = valueOfPar1 * valueOfPar2;                
-            return _value; ;
+                Value = _par1.Value * _par2.Value;                
+            return Value; ;
         }
-
     } 
 
     public class TimeDependetLinear : Parameter
@@ -226,8 +217,8 @@ namespace ComputationLib
         public TimeDependetLinear(int ID, string name, int interceptParID, int slopeParID, double timeOn, double timeOff)
             : base(ID, name)
         {
-            _type = EnumType.TimeDependentLinear;
-            _shouldBeUpdatedByTime = true;
+            Type = EnumType.TimeDependentLinear;
+            ShouldBeUpdatedByTime = true;
 
             InterceptParID = interceptParID;
             SlopeParID = slopeParID;
@@ -239,11 +230,11 @@ namespace ComputationLib
         public double Sample(double time, double intercept, double slope, double timeOn, double timeOff)
         {
             if (time < timeOn || time >= timeOff)
-                _value = 0;
+                Value = 0;
             else
-                _value = intercept + slope * time;
+                Value = intercept + slope * time;
 
-            return _value;
+            return Value;
         }
     }
 
@@ -258,8 +249,8 @@ namespace ComputationLib
         public TimeDependetOscillating(int ID, string name, int a0ParID, int a1ParID, int a2ParID, int a3ParID)
             : base(ID, name)
         {
-            _type = EnumType.TimeDependentOscillating;
-            _shouldBeUpdatedByTime = true;
+            Type = EnumType.TimeDependentOscillating;
+            ShouldBeUpdatedByTime = true;
 
             this.a0ParID = a0ParID;
             this.a1ParID = a1ParID;
@@ -270,8 +261,8 @@ namespace ComputationLib
         // sample this parameter
         public double Sample(double time, double a0, double a1, double a2, double a3)
         {
-            _value = a0 + a1 * Math.Cos((time+a2)*2*Math.PI/a3);
-            return _value; 
+            Value = a0 + a1 * Math.Cos((time+a2)*2*Math.PI/a3);
+            return Value; 
         }
     }
 
@@ -286,8 +277,8 @@ namespace ComputationLib
         public TimeDependentExponential(int ID, string name, int bParID, int minParID, int maxParID, int tStartParID)
             : base(ID, name)
         {
-            _type = EnumType.TimeDependentExponential;
-            _shouldBeUpdatedByTime = true;
+            Type = EnumType.TimeDependentExponential;
+            ShouldBeUpdatedByTime = true;
 
             this.minParID = minParID;
             this.maxParID = maxParID;
@@ -299,10 +290,10 @@ namespace ComputationLib
         public double Sample(double time, double b, double min, double max, double tStart)
         {
             if (time >= tStart)
-                _value = max - (max - min) * Math.Exp(-b * (time - tStart));
+                Value = max - (max - min) * Math.Exp(-b * (time - tStart));
             else
-                _value = min;
-            return _value;
+                Value = min;
+            return Value;
         }
     }
 
@@ -313,15 +304,15 @@ namespace ComputationLib
 
         public ComorbidityDisutility(int id, string name, int par1ID, int par2ID): base(id, name)
         {
-            _type = EnumType.ComorbidityDisutility;
+            Type = EnumType.ComorbidityDisutility;
             Par1ID = par1ID;
             Par2ID = par2ID;
         }
 
         public double Sample(double valDistulity1, double valDistulity2)
         {
-            _value = 1 - (1 - valDistulity1) * (1 - valDistulity2);
-            return _value;
+            Value = 1 - (1 - valDistulity1) * (1 - valDistulity2);
+            return Value;
         }
     }
 
