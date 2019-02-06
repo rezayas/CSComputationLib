@@ -27,6 +27,7 @@ namespace ComputationLib
         public bool IncludedInCalibration { get ; set ; }
         public bool ShouldBeUpdatedByTime { get ; set ; }
         public EnumType Type { get; protected set; }
+        public abstract double Sample(double time, RNG rng);
 
         public Parameter(int id, string name)
         {
@@ -93,7 +94,7 @@ namespace ComputationLib
         }
 
         // sample this parameter
-        public double Sample(RNG rng)
+        public override double Sample(double time, RNG rng)
         {
             Value = _RVG.SampleContinuous(rng);
             return Value;
@@ -122,7 +123,7 @@ namespace ComputationLib
         }
 
         // sample this parameter
-        public double Sample()
+        public override double Sample(double time, RNG rng)
         {
             Value = _slope * _depedentPar.Value + _intercept;
             return Value;
@@ -131,26 +132,24 @@ namespace ComputationLib
 
     public class LinearCombination : Parameter
     {
+        private List<Parameter> _parameters;
         private double[] _arrCoefficients;
 
         // Instantiation
-        public LinearCombination(int ID, string name, int[] parIDs, double[] coefficients) 
+        public LinearCombination(int ID, string name, List<Parameter> parameters, double[] coefficients) 
             : base(ID,name)
         {
             Type = EnumType.LinearCombination;
-            this.ParIDs = (int[])parIDs.Clone();
+            _parameters = parameters;
             _arrCoefficients = (double[])coefficients.Clone();
         }
 
-        // Properties 
-        public int[] ParIDs { get; }
-
         // sample this parameters
-        public double Sample(double[] valuesOfParams)
+        public override double Sample(double time, RNG rng)
         {
             Value =0;
-            for (int i = 0; i < valuesOfParams.Length; i++)
-                Value += _arrCoefficients[i] * valuesOfParams[i];
+            for (int i = 0; i < _arrCoefficients.Length; i++)
+                Value += _arrCoefficients[i] * _parameters[i].Value;
             return Value;
         }
 
@@ -158,23 +157,22 @@ namespace ComputationLib
 
     public class ProductParameter : Parameter
     {
+        private List<Parameter> _parameters;
+
         // Instantiation
-        public ProductParameter(int ID, string name, int[] parIDs)
+        public ProductParameter(int ID, string name, List<Parameter> parameters)
             : base(ID, name)
         {
             Type = EnumType.Product;
-            this.ParIDs = (int[])parIDs.Clone();
+            _parameters = parameters;
         }
 
-        // Properties 
-        public int[] ParIDs { get; }
-
         // sample this parameters
-        public double Sample(double[] valueOfParams)
+        public override double Sample(double time, RNG rng)
         {
             Value = 1;
-            for (int i = 0; i < valueOfParams.Length; i++)
-                Value *= valueOfParams[i];
+            foreach (Parameter par in _parameters)
+                Value *= par.Value;
             return Value;
         }
     }
@@ -196,7 +194,7 @@ namespace ComputationLib
         }
 
         // sample this parameter
-        public double Sample()
+        public override double Sample(double time, RNG rng)
         {
             if (_inverseFirstParameter)
                 Value = _par2.Value / _par1.Value;                
@@ -204,35 +202,55 @@ namespace ComputationLib
                 Value = _par1.Value * _par2.Value;                
             return Value; ;
         }
-    } 
+    }
+
+    public class ComorbidityDisutility : Parameter
+    {
+        private Parameter _par1;
+        private Parameter _par2;
+
+        public ComorbidityDisutility(int id, string name, Parameter par1, Parameter par2)
+            : base(id, name)
+        {
+            Type = EnumType.ComorbidityDisutility;
+            _par1 = par1;
+            _par2 = par2;
+        }
+
+        public override double Sample(double time, RNG rng)
+        {
+            Value = 1 - (1 - _par1.Value) * (1 - _par2.Value);
+            return Value;
+        }
+    }
 
     public class TimeDependetLinear : Parameter
     {
-        public int InterceptParID { get; }
-        public int SlopeParID { get; }
-        public double TimeOn { get; }
-        public double TimeOff { get; }
+        private Parameter _interceptPar { get; }
+        private Parameter _slopePar { get; }
+        private double _timeOn { get; }
+        private double _timeOff { get; }
 
         // Instantiation 
-        public TimeDependetLinear(int ID, string name, int interceptParID, int slopeParID, double timeOn, double timeOff)
+        public TimeDependetLinear(int ID, string name, Parameter interceptPar, Parameter slopePar, double timeOn, double timeOff)
             : base(ID, name)
         {
             Type = EnumType.TimeDependentLinear;
             ShouldBeUpdatedByTime = true;
 
-            InterceptParID = interceptParID;
-            SlopeParID = slopeParID;
-            TimeOn = timeOn;
-            TimeOff = timeOff;
+            _interceptPar = interceptPar;
+            _slopePar = slopePar;
+            _timeOn = timeOn;
+            _timeOff = timeOff;
         }
 
         // sample this parameter
-        public double Sample(double time, double intercept, double slope, double timeOn, double timeOff)
+        public override double Sample(double time, RNG rng)
         {
-            if (time < timeOn || time >= timeOff)
+            if (time < _timeOn || time >= _timeOff)
                 Value = 0;
             else
-                Value = intercept + slope * time;
+                Value = _interceptPar.Value + _slopePar.Value * time;
 
             return Value;
         }
@@ -240,80 +258,60 @@ namespace ComputationLib
 
     public class TimeDependetOscillating : Parameter
     {
-        public int a0ParID { get; }
-        public int a1ParID { get; }
-        public int a2ParID { get; }
-        public int a3ParID { get; }
+        private Parameter _a0Par;
+        private Parameter _a1Par;
+        private Parameter _a2Par;
+        private Parameter _a3Par;
 
         // Instantiation 
-        public TimeDependetOscillating(int ID, string name, int a0ParID, int a1ParID, int a2ParID, int a3ParID)
+        public TimeDependetOscillating(int ID, string name, Parameter a0Par, Parameter a1Par, Parameter a2Par, Parameter a3Par)
             : base(ID, name)
         {
             Type = EnumType.TimeDependentOscillating;
             ShouldBeUpdatedByTime = true;
 
-            this.a0ParID = a0ParID;
-            this.a1ParID = a1ParID;
-            this.a2ParID = a2ParID;
-            this.a3ParID = a3ParID;
+            _a0Par = a0Par;
+            _a1Par = a1Par;
+            _a2Par = a2Par;
+            _a3Par = a3Par;
         }
 
         // sample this parameter
-        public double Sample(double time, double a0, double a1, double a2, double a3)
+        public override double Sample(double time, RNG rng)
         {
-            Value = a0 + a1 * Math.Cos((time+a2)*2*Math.PI/a3);
+            Value = _a0Par.Value + _a1Par.Value * Math.Cos((time+_a2Par.Value)*2*Math.PI/_a3Par.Value);
             return Value; 
         }
     }
 
     public class TimeDependentExponential : Parameter
     {
-        public int minParID { get; }
-        public int maxParID { get; }
-        public int bParID { get; }
-        public int tStartParID { get; }
+        private Parameter _minPar;
+        private Parameter _maxPar;
+        private Parameter _bPar;
+        private Parameter _tStartPar;
 
         // Instantiation 
-        public TimeDependentExponential(int ID, string name, int bParID, int minParID, int maxParID, int tStartParID)
+        public TimeDependentExponential(int ID, string name, Parameter bPar, Parameter minPar, Parameter maxPar, Parameter tStartPar)
             : base(ID, name)
         {
             Type = EnumType.TimeDependentExponential;
             ShouldBeUpdatedByTime = true;
 
-            this.minParID = minParID;
-            this.maxParID = maxParID;
-            this.bParID = bParID;
-            this.tStartParID = tStartParID;
+            _minPar = minPar;
+            _maxPar = maxPar;
+            _bPar = bPar;
+            _tStartPar = tStartPar;
         }
 
         // sample this parameter
-        public double Sample(double time, double b, double min, double max, double tStart)
+        public override double Sample(double time, RNG rng)
         {
-            if (time >= tStart)
-                Value = max - (max - min) * Math.Exp(-b * (time - tStart));
+            if (time >= _tStartPar.Value)
+                Value = _maxPar.Value - (_maxPar.Value- _minPar.Value) * Math.Exp(-_bPar.Value * (time - _tStartPar.Value));
             else
-                Value = min;
+                Value = _minPar.Value;
             return Value;
         }
     }
-
-    public class ComorbidityDisutility : Parameter
-    {
-        public int Par1ID { get; }
-        public int Par2ID { get; }
-
-        public ComorbidityDisutility(int id, string name, int par1ID, int par2ID): base(id, name)
-        {
-            Type = EnumType.ComorbidityDisutility;
-            Par1ID = par1ID;
-            Par2ID = par2ID;
-        }
-
-        public double Sample(double valDistulity1, double valDistulity2)
-        {
-            Value = 1 - (1 - valDistulity1) * (1 - valDistulity2);
-            return Value;
-        }
-    }
-
 }
