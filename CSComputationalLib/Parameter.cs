@@ -18,7 +18,8 @@ namespace ComputationLib
             TimeDependentLinear = 6,
             TimeDependentOscillating = 7,
             TimeDependentExponential = 8,
-            ComorbidityDisutility = 9,
+            TimeDependentSigmoid = 9,
+            ComorbidityDisutility = 10,
         }
 
         public int ID { get; }
@@ -60,6 +61,9 @@ namespace ComputationLib
                     break;
                 case "time-dependent exponential":
                     thisEnum = EnumType.TimeDependentExponential;
+                    break;
+                case "time-dependent sigmoid":
+                    thisEnum = EnumType.TimeDependentSigmoid;
                     break;
                 case "comorbidity disutility":
                     thisEnum = EnumType.ComorbidityDisutility;
@@ -311,6 +315,32 @@ namespace ComputationLib
                 Value = _maxPar.Value - (_maxPar.Value- _minPar.Value) * Math.Exp(-_bPar.Value * (time - _tStartPar.Value));
             else
                 Value = _minPar.Value;
+            return Value;
+        }
+    }
+
+    public class TimeDependentSigmoid : Parameter
+    {
+        private Parameter _minPar;
+        private Parameter _bPar;
+        private Parameter _tStartPar;
+
+        // Instantiation 
+        public TimeDependentSigmoid(int ID, string name, Parameter bPar, Parameter minPar, Parameter tStartPar)
+            : base(ID, name)
+        {
+            Type = EnumType.TimeDependentSigmoid;
+            ShouldBeUpdatedByTime = true;
+
+            _minPar = minPar;
+            _bPar = bPar;
+            _tStartPar = tStartPar;
+        }
+
+        // sample this parameter
+        public override double Sample(double time, RNG rng)
+        {
+            Value = _minPar.Value + (1-_minPar.Value)/(1+Math.Exp(-_bPar.Value*(time-_tStartPar.Value)));
             return Value;
         }
     }
