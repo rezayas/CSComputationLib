@@ -26,7 +26,7 @@ namespace TestParallelStochasticApprox
                             );
 
             // build a parallel optimizer
-            ParallelStochasticApproximation optimization = new ParallelStochasticApproximation(
+            MultipleStochasticApproximation optimization = new MultipleStochasticApproximation(
                 simModels: models,
                 stepSizeGH_a0s: stepSizeGH_a0s,
                 stepSizeGH_bs: stepSizeGH_bs,

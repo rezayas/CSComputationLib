@@ -271,7 +271,7 @@ namespace ComputationLib
         }
     }
 
-    public class ParallelStochasticApproximation
+    public class MultipleStochasticApproximation
     {
         List<StochasticApproximation> stochasticApproximations = new List<StochasticApproximation>();
         public double fStar { get; private set; } = double.MaxValue;
@@ -280,7 +280,7 @@ namespace ComputationLib
         public double bStar { get; private set; } = double.NaN;
         public double c0Star { get; private set; } = double.NaN;
 
-        public ParallelStochasticApproximation(List<SimModel> simModels, double[] stepSizeGH_a0s, double[] stepSizeGH_bs, double[] stepSizeDf_cs)
+        public MultipleStochasticApproximation(List<SimModel> simModels, double[] stepSizeGH_a0s, double[] stepSizeGH_bs, double[] stepSizeDf_cs)
         {
 
             // build the stochastic approximations
