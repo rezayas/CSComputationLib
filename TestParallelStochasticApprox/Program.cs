@@ -38,7 +38,7 @@ namespace TestParallelStochasticApprox
 
             // minimize
             optimization.Minimize(
-                maxItrs: 5000,
+                nItrs: 5000,
                 nLastItrsToAve: 500,
                 x0: Vector<double>.Build.DenseOfArray(x0),
                 ifTwoSidedDerivative: true,
