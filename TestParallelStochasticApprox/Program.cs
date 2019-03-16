@@ -12,9 +12,9 @@ namespace TestParallelStochasticApprox
     {
         static void Main(string[] args)
         {
-            double[] stepSizeGH_a0s = new double[2] { 10, 2};
-            double[] stepSizeGH_bs = new double[2] { 1, 10};
-            double[] stepSizeDf_cs = new double[2] { 1, 5};
+            double[] stepSizeGH_a0s = new double[2] { 5, 10};
+            double[] stepSizeGH_bs = new double[2] { 50, 100};
+            double[] stepSizeDf_cs = new double[2] { 5, 10};
 
             // build models
             List<SimModel> models = new List<SimModel>();
@@ -35,18 +35,21 @@ namespace TestParallelStochasticApprox
 
             // initial value of x
             double[] x0 = new double[2] { -100, 200 };
+            double[] xScale = new double[2] { 100, 0.1 };
 
             // minimize
             optimization.Minimize(
                 nItrs: 5000,
                 nLastItrsToAve: 500,
                 x0: Vector<double>.Build.DenseOfArray(x0),
+                xScale: Vector<double>.Build.DenseOfArray(xScale),
+                modelProvidesDerivatives: false,
                 ifTwoSidedDerivative: true,
-                ifParallel: true, 
-                modelProvidesDerivatives: false
+                ifParallel: true               
                 );
 
             Console.WriteLine("Optimal x: " + optimization.xStar);
+            Console.WriteLine("Optimal dx/x: " + optimization.dxOverXAveStar);
             Console.WriteLine("Optimal f: " + optimization.fStar);
             Console.WriteLine("Optimal a0: " + optimization.a0Star);
             Console.WriteLine("Optimal b: " + optimization.bStar);

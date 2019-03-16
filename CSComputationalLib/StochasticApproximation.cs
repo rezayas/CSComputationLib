@@ -333,6 +333,7 @@ namespace ComputationLib
         List<StochasticApproximation> listStochApprox = new List<StochasticApproximation>();
         public double fStar { get; private set; } = double.MaxValue;
         public Vector<double> xStar { get; private set; }
+        public Vector<double> dxOverXAveStar { get; private set; }
         public double a0Star { get; private set; } = double.NaN;
         public double bStar { get; private set; } = double.NaN;
         public double c0Star { get; private set; } = double.NaN;
@@ -417,6 +418,7 @@ namespace ComputationLib
                 {
                     fStar = stocApprx.fStar;
                     xStar = stocApprx.xStar;
+                    dxOverXAveStar = stocApprx.dx_over_x_ave;
                     a0Star = stocApprx.Get_a0();
                     bStar = stocApprx.Get_b();
                     c0Star = stocApprx.Get_c0();
