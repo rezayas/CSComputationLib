@@ -22,7 +22,7 @@ namespace TestParallelStochasticApprox
                 foreach (double b in stepSizeGH_bs)
                     foreach (double c in stepSizeDf_cs)
                         models.Add(
-                            new TestBedX2Y2XY(errorVar: 10)
+                            new TestBedX2Y2XY(errorVar: 100)
                             );
 
             // build a parallel optimizer
