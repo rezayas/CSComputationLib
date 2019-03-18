@@ -433,5 +433,31 @@ namespace ComputationLib
                 stocApprx.ExportResultsToCSV(filename + stocApprx.Get_a0_b_c0() + ".csv");
             }
         }
+
+        public string[,] GetSummary(int f_digits, int x_digits)
+        {
+            string[,] summary = new string[listStochApprox.Count, 6];
+
+            // sort the algorithms in increasing order of f
+            List<StochasticApproximation> sorted = listStochApprox.OrderBy(s => s.fStar).ToList();
+
+            int i = 0;
+            foreach (StochasticApproximation stocApprx in sorted)
+            {
+                summary[i, 0] = stocApprx.Get_a0().ToString();
+                summary[i, 1] = stocApprx.Get_b().ToString();
+                summary[i, 2] = stocApprx.Get_c0().ToString();
+                summary[i, 3] = Math.Round(stocApprx.fStar, f_digits).ToString();
+
+                double[] xStar = stocApprx.xStar.ToArray();
+                double[] dxOverX = stocApprx.dx_over_x_ave.ToArray();
+
+                summary[i, 4] = string.Join(",", xStar.Select(x => Math.Round(x, x_digits)).ToArray());
+                summary[i, 5] = string.Join(",", dxOverX.Select(x => Math.Round(x, x_digits)).ToArray());
+                i++;
+            }
+
+            return summary;
+        }
     }
 }

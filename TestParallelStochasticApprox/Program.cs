@@ -56,7 +56,23 @@ namespace TestParallelStochasticApprox
             Console.WriteLine("Optimal c0: " + optimization.c0Star);
             optimization.ExportResultsToCSV("TestX2Y2");
 
+            // print summary
+            Console.WriteLine("");
+            Print2DArray(optimization.GetSummary(f_digits:1, x_digits:3));
+
             Console.ReadKey();
+        }
+
+        public static void Print2DArray<T>(T[,] matrix)
+        {
+            for (int i = 0; i < matrix.GetLength(0); i++)
+            {
+                for (int j = 0; j < matrix.GetLength(1); j++)
+                {
+                    Console.Write(matrix[i, j] + "\t");
+                }
+                Console.WriteLine();
+            }
         }
     }
 }
