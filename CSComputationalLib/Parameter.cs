@@ -25,8 +25,8 @@ namespace ComputationLib
         public int ID { get; }
         public string Name { get; }
         public double Value { get; protected set; } = 0;
-        public bool IncludedInCalibration { get ; set ; }
-        public bool ShouldBeUpdatedByTime { get ; set ; }
+        public bool IncludedInCalibration { get; set; } = false;
+        public bool ShouldBeUpdatedByTime { get; set; } = false;
         public EnumType Type { get; protected set; }
         public abstract double Sample(double time, RNG rng);
 
