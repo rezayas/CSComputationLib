@@ -20,6 +20,7 @@ namespace ComputationLib
             TimeDependentExponential = 8,
             TimeDependentSigmoid = 9,
             ComorbidityDisutility = 10,
+            TenToPower = 11,
         }
 
         public int ID { get; }
@@ -43,6 +44,9 @@ namespace ComputationLib
             {
                 case "correlated":
                     thisEnum = EnumType.Correlated;
+                    break;
+                case "ten-to-power":
+                    thisEnum = EnumType.TenToPower;
                     break;
                 case "linear combination":
                     thisEnum = EnumType.LinearCombination;
@@ -132,7 +136,27 @@ namespace ComputationLib
             Value = _slope * _depedentPar.Value + _intercept;
             return Value;
         }
-    } 
+    }
+
+    public class TenToPowerParameter : Parameter
+    {
+        private Parameter _exponentPar;
+
+        // Instantiation
+        public TenToPowerParameter(int ID, string name, Parameter exponentPar)
+            : base(ID, name)
+        {
+            Type = EnumType.TenToPower;
+            _exponentPar = exponentPar;
+        }
+
+        // sample this parameter
+        public override double Sample(double time, RNG rng)
+        {
+            Value = Math.Pow(10, _exponentPar.Sample(time, rng));
+            return Value;
+        }
+    }
 
     public class LinearCombination : Parameter
     {
