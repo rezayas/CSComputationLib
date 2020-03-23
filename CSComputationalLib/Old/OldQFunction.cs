@@ -11,9 +11,9 @@ namespace ComputationLib
         // Fields
         public string Name { get; }
 
-        public double[] MinimumX { get; }
-        public double FuncValueAtMinimumX { get; }
-        public int NumOfOptimizationItrs { get; }
+        public double[] MinimumX { get; protected set; }
+        public double FuncValueAtMinimumX { get; protected set; }
+        public int NumOfOptimizationItrs { get; protected set; }
 
         // Instantiation
         public OldQFunction(string name)
@@ -37,7 +37,7 @@ namespace ComputationLib
         public virtual void Reset() { }
     }
 
-    public class OldPolynomialQFunction : QFunction
+    public class OldPolynomialQFunction : OldQFunction
     {
         // Fields
         LeastSquares _leastSquares;
