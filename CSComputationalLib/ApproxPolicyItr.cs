@@ -9,6 +9,19 @@
 
 namespace ComputationLib
 {
+    enum EnumStepSizeRule : int
+    {
+        Constant = 1,
+        Harmonic = 2,
+        Polynomial = 3,
+    }
+
+    public enum EnumLineSearchMethod : int
+    {
+        SteepestDescent = 1,
+        Newton = 2,
+    }
+
     public enum EnumResponseTransformation : int
     {
         None = 0,
@@ -22,6 +35,11 @@ namespace ComputationLib
         Q_Approximation = 0,
         A_Approximation = 1,
         H_Approximation = 2,
+    }
+
+    public class ADP
+    {
+        protected StepSizeRule _stepSizeRule;
     }
 
     //public class ADP

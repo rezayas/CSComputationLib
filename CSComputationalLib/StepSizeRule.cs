@@ -5,85 +5,81 @@ using System.Text;
 
 namespace ComputationLib
 {
-    public abstract class cStepSizeRule
+    public abstract class StepSizeRule
     {
-        protected string _name;
+        public string Name { get; }
+
         // Instantiation
-        public cStepSizeRule(string name)
+        public StepSizeRule(string name)
         {
-            _name = name;
+            Name = name;
         }
         // step size
-        public virtual double StepSize(long iteration)
+        public virtual double GetStepSize(long itr)
         {
             return 0;
         }
         // discount rate corresponding to this step size
-        public double ObservationDiscountRate(long iteration)
+        public double GetDiscountRate(long itr)
         {
-            return 1 / (1 + StepSize(iteration));
-
-            //double alpha_nMinus1, alpha_n;
-            //alpha_nMinus1 = StepSize(iteration);
-            //alpha_n = StepSize(iteration + 1);
-
-            //return alpha_nMinus1 * (1-alpha_n)/alpha_n;            
+            return 1 / (1 + GetStepSize(itr));         
         }
     }
 
-    public class cConstantStepSize : cStepSizeRule
+    public class ConstantStepSize : StepSizeRule
     {
-        double _stepSize;
+        private readonly double _stepSize;
         // Instantiation
-        public cConstantStepSize(string name, double stepSize)
+        public ConstantStepSize(string name, double stepSize)
             : base(name)
         {
             _stepSize = stepSize;
         }
         // step size
-        public override double StepSize(long iteration)
+        public override double GetStepSize(long itr)
         {            
             return _stepSize;
         }        
     }
 
-    public class cHarmonicStepSize : cStepSizeRule
+    public class HarmonicStepSize : StepSizeRule
     {
-        double _a;
+        public double a { get; }
+
         // Instantiation
-        public cHarmonicStepSize(string name, double a)
+        public HarmonicStepSize(string name, double a)
             : base(name)
         {
-            _a = a;
+            this.a = a;
         }
         // step size
-        public override double StepSize(long iteration)
+        public override double GetStepSize(long itr)
         {
-            if (iteration <= 0)
+            if (itr <= 0)
                 return 1;
 
-            if (_a <= 0) return 0;
+            if (a <= 0) return 0;
 
-            return _a/(_a + iteration - 1);
+            return a/(a + itr - 1);
         }
     }
 
-    public class cPolynomialStepSize : cStepSizeRule
+    public class PolynomialStepSize : StepSizeRule
     {
-        private double _beta;
+        public double beta { get; }
         // Instantiation
-        public cPolynomialStepSize(string name, double beta)
+        public PolynomialStepSize(string name, double beta)
             : base(name)
         {
-            _beta = beta;
+            this.beta = beta;
         }
         // step size
-        public override double StepSize(long iteration)
+        public override double GetStepSize(long itr)
         {
-            if (iteration <= 0)
+            if (itr <= 0)
                 return 1;
 
-            return 1/Math.Pow(iteration, _beta);
+            return 1/Math.Pow(itr, beta);
         }
     }
 }

@@ -5,14 +5,18 @@ using System.Text;
 
 namespace ComputationLib
 {
-    public abstract class QFunction
+    public abstract class OldQFunction
     {
-       
+
         // Fields
         public string Name { get; }
 
+        public double[] MinimumX { get; }
+        public double FuncValueAtMinimumX { get; }
+        public int NumOfOptimizationItrs { get; }
+
         // Instantiation
-        public QFunction(string name)
+        public OldQFunction(string name)
         {
             Name = name;
         }
@@ -25,11 +29,15 @@ namespace ComputationLib
         // function value
         public virtual double fValue(double[] continuousVar) { return 0; }
         public virtual double fValue(int[] indicatorVar, double[] continuousVar) { return 0; }
+        // gradient 
+        public virtual double[] fGradientValue(double[] var) { return null; }
+        // jacobian
+        public virtual double[,] fJacobianValue(double[] var) { return null; }
         // reset Q-function
-        public virtual void Reset() {  }
+        public virtual void Reset() { }
     }
 
-    public class PolynomialQFunction : QFunction
+    public class OldPolynomialQFunction : QFunction
     {
         // Fields
         LeastSquares _leastSquares;
@@ -38,7 +46,7 @@ namespace ComputationLib
         int _polynomialDegree;
         int _numOfRegColumns;
         int[][] _degreesOfContinuousVariablesInPolynomialTerms; // each row represents a term and columns represent power of each variable for each term
-                
+
         /// <summary>
         /// Instantiation of polynomial function of the form:
         /// f(i1, i2, x1, x2) = g0(x1, x2) + i1*g1(x1, x2) + i2*g2(x1, x2)
@@ -47,7 +55,7 @@ namespace ComputationLib
         /// <param name="numOfIndicatorVariables"> set 0 for a regular regression</param>
         /// <param name="numOfContinuousVariables"></param>
         /// <param name="polynomialDegree"></param>
-        public PolynomialQFunction(string name, int numOfIndicatorVariables, int numOfContinuousVariables, int polynomialDegree, int multiplyNumOfColumnsByThisFactorToBeginTraining = 1)
+        public OldPolynomialQFunction(string name, int numOfIndicatorVariables, int numOfContinuousVariables, int polynomialDegree, int multiplyNumOfColumnsByThisFactorToBeginTraining = 1)
             : base(name)
         {
             _numOfContinuousVariables = numOfContinuousVariables;
@@ -61,7 +69,7 @@ namespace ComputationLib
             // setup the least squares
             _leastSquares = new LeastSquares();
             _leastSquares.SetupTraining(_numOfRegColumns);
-        }        
+        }
 
         // Properties
         public int NumberOfRegressionColumns
@@ -80,27 +88,24 @@ namespace ComputationLib
         // update
         public override void Update(double[] continuousVar, double fValue, int itr)
         {
-            ++base._itr;
 
             //_leastSquares.Update(ConvertToRowDesign(var), fValue, _stepSizeRule.ObservationDiscountRate(itr));
-            _leastSquares.Update(ConvertToRowDesign(continuousVar), fValue, _stepSizeRule.GetDiscountRate(base._itr));
-        }        
+            _leastSquares.Update(ConvertToRowDesign(continuousVar), fValue, 1);
+        }
         public override void Update(double[] continuousVar, double fValue)
         {
             _leastSquares.Update(ConvertToRowDesign(continuousVar), fValue, 1);
         }
         public override void Update(int[] indicatorVar, double[] continuousVar, double fValue, int itr)
         {
-            ++base._itr;
-
             //_leastSquares.Update(ConvertToRowDesign(var), fValue, _stepSizeRule.ObservationDiscountRate(itr));
-            _leastSquares.Update(ConvertToRowDesign(indicatorVar, continuousVar), fValue, _stepSizeRule.GetDiscountRate(base._itr));
+            _leastSquares.Update(ConvertToRowDesign(indicatorVar, continuousVar), fValue, 1);
         }
         public override void Update(int[] indicatorVar, double[] continuousVar, double fValue)
         {
             _leastSquares.Update(ConvertToRowDesign(indicatorVar, continuousVar), fValue, 1);
         }
-                
+
         /// <summary>
         /// Function value
         /// </summary>
@@ -126,7 +131,7 @@ namespace ComputationLib
             double[] gradient = new double[_numOfContinuousVariables];
             // find the gradient for each variable            
             for (int varIndex = 0; varIndex < _numOfContinuousVariables; ++varIndex)
-                gradient[varIndex] = _leastSquares.yValue(ConvertToGradientRowDesignWithRespectToAVariable(var,varIndex));
+                gradient[varIndex] = _leastSquares.yValue(ConvertToGradientRowDesignWithRespectToAVariable(var, varIndex));
 
             return gradient;
         }
@@ -146,17 +151,17 @@ namespace ComputationLib
 
             return jacobian;
         }
-        
+
         // update estimates
         public void UpdateCoefficients(double[] estimates)
         {
             // update the estimates
-            _leastSquares.UpdateCoefficients(estimates);            
+            _leastSquares.UpdateCoefficients(estimates);
         }
-        
+
         // minimize using gradient descent method
         public void MinimizeUsingGradientDescent(EnumLineSearchMethod lineSearchMethod, double[] initialVariableValues, double stepSize, double normOfGradientToStop)
-        {            
+        {
             int numOfIterations = 0;
             double[] currentVar = initialVariableValues;
             double[] currentGradient; // = new double[_numOfContinuousVariables];
@@ -168,18 +173,18 @@ namespace ComputationLib
             // calculate the gradient
             currentGradient = fGradientValue(initialVariableValues);
             // calculate the norm of gradient
-            norm = LinearAlgebraFunctions.Norm(currentGradient, LinearAlgebraFunctions.enumVectorNorm.L_inf);               
+            norm = LinearAlgebraFunctions.Norm(currentGradient, LinearAlgebraFunctions.enumVectorNorm.L_inf);
 
             // do while error is still too big
             while (norm >= normOfGradientToStop)
-            {                
+            {
                 // calculate the new direction
                 switch (lineSearchMethod)
                 {
                     case EnumLineSearchMethod.SteepestDescent:
                         {
                             for (int varIndex = 0; varIndex < _numOfContinuousVariables; varIndex++)
-                                direction[varIndex] = - stepSize * currentGradient[varIndex];
+                                direction[varIndex] = -stepSize * currentGradient[varIndex];
                         }
                         break;
                     case EnumLineSearchMethod.Newton:
@@ -209,14 +214,14 @@ namespace ComputationLib
                 currentGradient = fGradientValue(currentVar);
 
                 // calculate the norm of the gradient
-                norm = LinearAlgebraFunctions.Norm(currentGradient, LinearAlgebraFunctions.enumVectorNorm.L_inf);               
+                norm = LinearAlgebraFunctions.Norm(currentGradient, LinearAlgebraFunctions.enumVectorNorm.L_inf);
 
                 // increment the number of iterations
                 ++numOfIterations;
             }
 
             MinimumX = (double[])newVar.Clone();
-            FAtMinimumX = fValue(MinimumX);
+            FuncValueAtMinimumX = fValue(MinimumX);
             NumOfOptimizationItrs = numOfIterations;
         }
 
@@ -285,7 +290,7 @@ namespace ComputationLib
                         for (int continuousVarIndex = 0; continuousVarIndex < _numOfContinuousVariables; continuousVarIndex++)
                             rowDesign[regColIndex] *= Math.Pow(continuousVariableValues[continuousVarIndex], _degreesOfContinuousVariablesInPolynomialTerms[polynomialTermIndex][continuousVarIndex]);
                     ++regColIndex;
-                }                
+                }
             }
             return rowDesign;
         }
@@ -310,7 +315,7 @@ namespace ComputationLib
                     }
                     else
                         rowDesign[polynomialTermIndex] *= Math.Pow(continuousVariableValues[varIndex], degreeOfThisVariable);
-                }        
+                }
             return rowDesign;
         }
         // convert the variables into a row design for calculating jacobian with respect to 2 variables
@@ -347,7 +352,7 @@ namespace ComputationLib
 
             return rowDesign;
         }
-        
+
         /// <summary>
         /// Find the degree (exponent) of each variable in terms of a polynomial function of a certain degree
         /// Return the matrix where rows represent the terms of a polynomial functions and columns represent the variables. Each entity is the degree of a variable in a polynomial function term.
@@ -374,7 +379,7 @@ namespace ComputationLib
                 for (int firstVarDeg = 0; firstVarDeg <= degree; firstVarDeg++)
                 {
                     // find the possible permutations of remaining variables if the degree of the first variable is set
-                    int[][] nextPermutation = DegreesOfVariablesInPolynomialTerms(numOfVariables - 1, degree - firstVarDeg);                    
+                    int[][] nextPermutation = DegreesOfVariablesInPolynomialTerms(numOfVariables - 1, degree - firstVarDeg);
                     // go over the permutations of the remaining variables                    
                     for (int nextVarPermultationRowIndex = 0; nextVarPermultationRowIndex < nextPermutation.GetLength(0); nextVarPermultationRowIndex++)
                     {
@@ -388,7 +393,7 @@ namespace ComputationLib
                 }
             }
             return result;
-        }    
+        }
     }
 
 }
