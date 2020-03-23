@@ -7,47 +7,38 @@ namespace ComputationLib
 {
     public class PolynomialFunction
     {
-        string _name;
-        int _degree;        
-        LeastSquares _leastSquares;
-        double[] _coefficients;
+        public string Name { get; }
+        public int Degree { get; }
+        public double[] Coefs { get; set; }
+        private LeastSquares _leastSquares;
 
         public PolynomialFunction(string name, int degree)
         {
-            _name = name;
-            _degree = degree;
-        }
-
-        public int Degree
-        {
-            get{ return _degree; }
-        }
-        public double[] Coefficient
-        {
-            get{ return _coefficients; }
+            Name = name;
+            Degree = degree;
         }
 
         public void AssignCoefficient(double[] coefficients)
         {
-            _coefficients = coefficients;
+            Coefs = coefficients;
         }
-        public void SetupTraining(int multiplyNumOfColumnsByThisFactorToBeginTraining = 1)
+        public void SetupTraining()
         {
             _leastSquares = new LeastSquares();
-            _leastSquares.SetupTraining(_degree+1);
+            _leastSquares.SetupTraining(numOfColumns: Degree+1);
         }
 
         // update the parameters using least squares
         public void Update(double x, double y)
         {
-            double[] xs = new double[_degree +1];
+            double[] xs = new double[Degree +1];
             // build a row
-            for (int i =0; i <= _degree;++i)
+            for (int i =0; i <= Degree;++i)
                 xs[i] = Math.Pow(x,i);
             // update
             _leastSquares.Update(xs, y, 1);
             // get the coefficient
-            _coefficients = _leastSquares.Coeff.ToArray();
+            Coefs = _leastSquares.Coeff.ToArray();
         }
 
         // find a the minimum
@@ -158,27 +149,27 @@ namespace ComputationLib
         public double fValue(double x)
         {
             double sum = 0;
-            for (int i = 0; i <= _degree; ++i)
+            for (int i = 0; i <= Degree; ++i)
             {
-                sum += _coefficients[i] * Math.Pow(x, i);
+                sum += Coefs[i] * Math.Pow(x, i);
             }
             return sum;
         }
         public double fPrimeValue(double x)
         {
             double sum = 0;
-            for (int i = 1; i <= _degree; ++i)
+            for (int i = 1; i <= Degree; ++i)
             {
-                sum += i * _coefficients[i] * Math.Pow(x, i-1);
+                sum += i * Coefs[i] * Math.Pow(x, i-1);
             }
             return sum;
         }
         public double fDoublePrimeValue(double x)
         {
             double sum = 0;
-            for (int i = 2; i <= _degree; ++i)
+            for (int i = 2; i <= Degree; ++i)
             {
-                sum += i * (i-1) * _coefficients[i] * Math.Pow(x, i - 2);
+                sum += i * (i-1) * Coefs[i] * Math.Pow(x, i - 2);
             }
             return sum;
         }
