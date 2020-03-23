@@ -141,7 +141,7 @@ namespace ComputationLib
             _numOfRegColumns = _degreesOfContinuousVariablesInPolynomialTerms.GetLength(0) * (numOfIndicatorVariables + 1);
 
             // setup the least squares
-            _leastSquares = new LeastSquares("Least Squares for Q-function " + _name);
+            _leastSquares = new LeastSquares();
             _leastSquares.SetupTraining(_numOfRegColumns, multiplyNumOfColumnsByThisFactorToBeginTraining);
         }        
 
@@ -156,7 +156,7 @@ namespace ComputationLib
         }
         public double[] CoeffientEstimates
         {
-            get { return _leastSquares.Coefficients; }
+            get { return _leastSquares.Coeff.ToArray(); }
         }
 
         // add a regularization penalty

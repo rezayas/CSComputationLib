@@ -113,7 +113,7 @@ namespace ComputationLib
             _observationDiscountRate = observationDiscountRate;
             _perturbationRatio = perturbationRatio;
 
-            _OLS = new LeastSquares(_name);
+            _OLS = new LeastSquares();
 
             _OLS.SetupTraining(_numOfBrackets + 1);
         }
@@ -136,7 +136,7 @@ namespace ComputationLib
             // update OLS
             _OLS.Update(OLS_x, fValue, _observationDiscountRate);
             // update value of break points
-            _fBreakPoints = _OLS.Coefficients;
+            _fBreakPoints = _OLS.Coeff.ToArray();
         }
         public double f(double x)
         {
@@ -324,7 +324,7 @@ namespace ComputationLib
         public void SetupTraining(double observationDiscountRate, double perturbationRatio)
         {
             _observationDiscountRate = observationDiscountRate;
-            _OLS = new LeastSquares(_name);
+            _OLS = new LeastSquares();
             int numOfCols = (_numOfX1Brackets + 1) * (_numOfX2Brackets + 1) - 1;            
             // set up OLS
             _OLS.SetupTraining(numOfCols);
@@ -377,7 +377,7 @@ namespace ComputationLib
             _OLS.Update(OLS_x, fValue, _observationDiscountRate);
 
             // update fbreakpoints
-            _fBreakPoints = ConvertOLSCoeffTofBreakPoints(_OLS.Coefficients);
+            _fBreakPoints = ConvertOLSCoeffTofBreakPoints(_OLS.Coeff.ToArray());
 
         }
 

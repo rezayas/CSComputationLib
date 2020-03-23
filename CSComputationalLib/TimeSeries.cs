@@ -165,7 +165,7 @@ namespace ComputationLib
                     #region enumPredictionModel.Quadratic
                     {
                         // define a regression model
-                        LeastSquares thisLS = new LeastSquares("Prediction");
+                        LeastSquares thisLS = new LeastSquares();
                         thisLS.RunRegression(_matX, _arrAggregatedObs);
 
                         if (integrateOverFutureObsPeriods == false) // prediction should not be integrated over the prediction period

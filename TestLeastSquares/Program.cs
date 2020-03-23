@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using MathNet.Numerics.LinearAlgebra;
 using MathNet.Numerics.LinearRegression;
 using MathNet.Numerics.Distributions;
+using ComputationLib;
 
 namespace TestLeastSquares
 {
@@ -32,7 +33,24 @@ namespace TestLeastSquares
 
             Vector<double> p = MultipleRegression.NormalEquations(X, y);
 
+            Console.WriteLine("Math.Net algorithm:");
             Console.WriteLine(p);
+
+
+            // my version 
+            LeastSquares LS = new LeastSquares();
+            LS.RunRegression(X: X.ToArray(), y: y.ToArray());
+            Console.WriteLine("My algorithm:");
+            Console.WriteLine(LS.Coeff);
+
+            // my version with L2 regularization
+            LeastSquares LS2 = new LeastSquares();
+            LS2.AddL2Regularization(0.01);
+            LS2.RunRegression(X: X.ToArray(), y: y.ToArray());
+            Console.WriteLine("My algorithm with L2 regularilization:");
+            Console.WriteLine(LS2.Coeff);
+
+
             Console.ReadKey();
 
         }

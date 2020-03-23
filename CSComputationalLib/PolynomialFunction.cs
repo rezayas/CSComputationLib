@@ -33,7 +33,7 @@ namespace ComputationLib
         }
         public void SetupTraining(int multiplyNumOfColumnsByThisFactorToBeginTraining = 1)
         {
-            _leastSquares = new LeastSquares(_name);
+            _leastSquares = new LeastSquares();
             _leastSquares.SetupTraining(_degree+1, multiplyNumOfColumnsByThisFactorToBeginTraining);
         }
 
@@ -47,7 +47,7 @@ namespace ComputationLib
             // update
             _leastSquares.Update(xs, y, 1);
             // get the coefficient
-            _coefficients = _leastSquares.Coefficients;
+            _coefficients = _leastSquares.Coeff.ToArray();
         }
 
         // find a the minimum
