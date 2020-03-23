@@ -5,20 +5,43 @@ using System.Text;
 
 namespace ComputationLib
 {
-    public abstract class StepSizeRule
-    {
-        public string Name { get; }
 
+    public abstract class ExplorationRule
+    {
         // Instantiation
-        public StepSizeRule(string name)
+        public ExplorationRule()
         {
-            Name = name;
+        }
+        public abstract double GetEpsilon(long itr);
+    }
+
+    public class EpsilonGreedy : ExplorationRule
+    {
+        // select the greedy option with probability 1-epsilon, where 
+        // epsilon = 1/n^beta, beta \in (0.5, 1]
+
+        public double Beta { get; }
+        public EpsilonGreedy(double beta): base()
+        {
+            Beta = beta;
+        }
+        // update epsilon greedy
+        public override double GetEpsilon(long itr)
+        {
+            return Math.Pow(itr, -Beta);
+        }
+    }
+
+
+    public abstract class LearningRule
+    {
+        // Instantiation
+        public LearningRule()
+        {
         }
         // step size
-        public virtual double GetStepSize(long itr)
-        {
-            return 0;
-        }
+        public abstract double GetStepSize(long itr);
+
         // discount rate corresponding to this step size
         public double GetDiscountRate(long itr)
         {
@@ -26,12 +49,12 @@ namespace ComputationLib
         }
     }
 
-    public class ConstantStepSize : StepSizeRule
+    public class ConstantStepSize : LearningRule
     {
         private readonly double _stepSize;
         // Instantiation
-        public ConstantStepSize(string name, double stepSize)
-            : base(name)
+        public ConstantStepSize(double stepSize)
+            : base()
         {
             _stepSize = stepSize;
         }
@@ -42,13 +65,13 @@ namespace ComputationLib
         }        
     }
 
-    public class HarmonicStepSize : StepSizeRule
+    public class HarmonicStepSize : LearningRule
     {
         public double a { get; }
 
         // Instantiation
-        public HarmonicStepSize(string name, double a)
-            : base(name)
+        public HarmonicStepSize(double a)
+            : base()
         {
             this.a = a;
         }
@@ -64,12 +87,12 @@ namespace ComputationLib
         }
     }
 
-    public class PolynomialStepSize : StepSizeRule
+    public class PolynomialStepSize : LearningRule
     {
         public double beta { get; }
         // Instantiation
-        public PolynomialStepSize(string name, double beta)
-            : base(name)
+        public PolynomialStepSize(double beta)
+            : base()
         {
             this.beta = beta;
         }
