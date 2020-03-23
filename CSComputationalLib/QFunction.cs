@@ -142,7 +142,7 @@ namespace ComputationLib
 
             // setup the least squares
             _leastSquares = new LeastSquares();
-            _leastSquares.SetupTraining(_numOfRegColumns, multiplyNumOfColumnsByThisFactorToBeginTraining);
+            _leastSquares.SetupTraining(_numOfRegColumns);
         }        
 
         // Properties
@@ -157,12 +157,6 @@ namespace ComputationLib
         public double[] CoeffientEstimates
         {
             get { return _leastSquares.Coeff.ToArray(); }
-        }
-
-        // add a regularization penalty
-        public override void AddL2Regularization(double penaltyParameter)
-        {
-            _leastSquares.AddL2Regularization(penaltyParameter);
         }
 
         // update

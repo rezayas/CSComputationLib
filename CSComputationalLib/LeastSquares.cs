@@ -46,12 +46,6 @@ namespace ComputationLib
             Coeff = Vector<double>.Build.Dense(coefficients);
         }
 
-        // add an L2-Regularization
-        public void AddL2Regularization(double penalty)
-        {
-            _l2Penalty = penalty;
-        }
-
         public void RunRegression(double[,] X, double[] y)
         {
             // coeff = (XT.X)-1.XT.Y
@@ -127,75 +121,51 @@ namespace ComputationLib
             }
             else
             {
-                // create a matrix from array x
-                Matrix mat_x = new Matrix(_numOfColumns, 1);
-                for (int i = 0; i < _numOfColumns; i++)
-                    mat_x[i, 0] = x[i];
 
-                // update gamma
-                tempMatrix = null;
-                tempMatrix = Matrix.Transpose(mat_x) * _matB * mat_x;
-                if (double.IsNaN(tempMatrix[0, 0]) || double.IsInfinity(tempMatrix[0, 0]))
-                {
-                    Console.WriteLine("Error in OLS updating: gamma is either not a number or infinity.");
-                    // make the matrix X identity matrix
-                    for (int i = 0; i < _numOfColumns; ++i)
-                        for (int j = 0; j < _numOfColumns; ++j)
-                            if (i == j)
-                                _matB[i, j] = 1;
-                            else
-                                _matB[i, j] = 0;
-                    tempMatrix = Matrix.Transpose(mat_x) * _matB * mat_x;
-                }
-                gamma = discountRate + tempMatrix[0, 0];
-
-                // adjust gamma for stability if needed
-                if (Math.Abs(tempMatrix[0, 0]) <= 0.00001)
-                    gamma += 0.00001;
+                // update gamma 
+                Matrix<double> mat_x = Matrix<double>.Build.DenseOfColumnArrays(x);
+                Matrix<double> a = mat_x.Transpose() * _B * mat_x;
+                gamma = discountRate + a[0, 0];
 
                 // update H
-                _matH = Matrix.ScalarDivide(-gamma, _matB);
+                _H = _B.Divide(-gamma);
 
                 // update epsilon
-                tempMatrix = null;
-                tempMatrix = Matrix.Transpose(_matCoeff) * mat_x;
-                double epsilon = y - tempMatrix[0, 0];
+                
+                Matrix<double> b = Coeff.ToRowMatrix() * mat_x;
+                double epsilon = y - b[0, 0];
 
                 // update coefficients
-                tempMatrix = null;
-                tempMatrix = _matH * mat_x;
-                _matCoeff = _matCoeff - Matrix.ScalarMultiply(epsilon, tempMatrix);
+                Matrix<double> c = _H * mat_x;
+                Matrix<double> mat_coeff = Coeff.ToColumnMatrix();
+                mat_coeff = mat_coeff - c.Multiply(epsilon);
 
                 // update B
-                tempMatrix = null;
-                tempMatrix = _matB * mat_x * Matrix.Transpose(mat_x) * _matB;
+                Matrix<double> d = _B * mat_x * mat_x.Transpose() * _B;
+                Matrix<double> e = _B - d.Divide(gamma);
 
-                tempMatrix2 = null;
-                //tempMatrix2 = Matrix.ScalarDivide(_itrNumber,_matB) - Matrix.ScalarDivide(gamma, tempMatrix);
-                tempMatrix2 = _matB - Matrix.ScalarDivide(gamma, tempMatrix);
+                _B = e.Divide(discountRate);
 
-                _matB = Matrix.ScalarDivide(discountRate, tempMatrix2);
-            }
-
-            // update the coefficient array
-            for (int i = 0; i < _numOfColumns; ++i)
-                _arrCoefficients[i] = _matCoeff[i, 0];
+                // update the coefficient array
+                for (int i = 0; i < NumOfColumns; ++i)
+                    Coeff[i] = mat_coeff[i, 0];
+            }            
         }
 
-            ///// <summary>
-            ///// convert a categorial variable to its equivalent binary code 
-            ///// </summary>
-            ///// <param name="valueOfTheCategorialVariable"> must be between 0 and N - 1, inclusive, where N is the number of possible categories </param>
-            ///// <param name="numOfCategories"> number of possible categories</param>
-            ///// <returns></returns>
-            //static public int[] ConvertACategoricalVariableToItsBinaryCode(int valueOfTheCategorialVariable, int numOfCategories)
-            //{
-            //    int[] result = new int[numOfCategories - 1];
+        /// <summary>
+        /// convert a categorial variable to its equivalent binary code 
+        /// </summary>
+        /// <param name="valueOfTheCategorialVariable"> must be between 0 and N - 1, inclusive, where N is the number of possible categories </param>
+        /// <param name="numOfCategories"> number of possible categories</param>
+        /// <returns></returns>
+        static public int[] ConvertACategoricalVariableToItsBinaryCode(int valueOfTheCategorialVariable, int numOfCategories)
+        {
+            int[] result = new int[numOfCategories - 1];
 
-            //    if (valueOfTheCategorialVariable > 0)
-            //        result[valueOfTheCategorialVariable - 1] = 1;
+            if (valueOfTheCategorialVariable > 0)
+                result[valueOfTheCategorialVariable - 1] = 1;
 
-            //    return result;
-            //}
+            return result;
         }
+    }
 }

@@ -44,12 +44,24 @@ namespace TestLeastSquares
             Console.WriteLine(LS.Coeff);
 
             // my version with L2 regularization
-            LeastSquares LS2 = new LeastSquares();
-            LS2.AddL2Regularization(0.01);
+            LeastSquares LS2 = new LeastSquares(l2Penalty:0.01);
             LS2.RunRegression(X: X.ToArray(), y: y.ToArray());
             Console.WriteLine("My algorithm with L2 regularilization:");
             Console.WriteLine(LS2.Coeff);
 
+            LeastSquares LS_Recursive = new LeastSquares(l2Penalty: 0.01);
+            LS_Recursive.SetupTraining(numOfColumns: 3);
+
+            for (int i = 0; i < 1000; i++)
+            {
+                double[] x = new double[3];
+                for (int j = 0; j < 3; j++)
+                    x[j] = X[i, j];
+
+                LS_Recursive.Update(x:x, y: y[i], discountRate: 1);
+            }
+            Console.WriteLine("My recursive algorithm with L2 regularilization:");
+            Console.WriteLine(LS_Recursive.Coeff);
 
             Console.ReadKey();
 

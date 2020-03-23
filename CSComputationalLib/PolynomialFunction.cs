@@ -34,7 +34,7 @@ namespace ComputationLib
         public void SetupTraining(int multiplyNumOfColumnsByThisFactorToBeginTraining = 1)
         {
             _leastSquares = new LeastSquares();
-            _leastSquares.SetupTraining(_degree+1, multiplyNumOfColumnsByThisFactorToBeginTraining);
+            _leastSquares.SetupTraining(_degree+1);
         }
 
         // update the parameters using least squares
