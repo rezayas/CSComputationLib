@@ -45,7 +45,7 @@ namespace ComputationLib
 
     public class ApproximatePolicyIteration
     {
-        public List<DPState> DPStates { get; private set; } = new List<DPState>();   
+        public List<DPState> DPStates { get; private set; } = new List<DPState>();
         public int[][] ActionCombinations { get; private set; } // list of action combinations 
         private readonly int _nOfActions; // n of action combinations = (n of actions)^2        
 
@@ -62,10 +62,11 @@ namespace ComputationLib
         private double _discountFactor;
         private ExplorationRule _explorationRule;
         private LearningRule _learningRule;
-        public double[] Errors { get; private set; }
+        public double[] Errors { get => _errors; private set => _errors = value; }
 
         // debugging
         private double[][] _matOf_IfEliggible_Actions_FeatureValues_Responses;
+        private double[] _errors;
 
         public ApproximatePolicyIteration(LearningRule learningRule, ExplorationRule explorationRule, double discountFactor)
         {
@@ -257,7 +258,7 @@ namespace ComputationLib
         }
 
         // find an epsilon greedy decision        
-        public int[] FindEpsilonGreedyActionCombination (RNG rng, double[] featureValues)
+        public int[] FindEpsilonGreedyActionCombination(RNG rng, double[] featureValues)
         {
             int[] anActionCombination;
             // with probability of epsilon, make a random decision
@@ -268,7 +269,7 @@ namespace ComputationLib
 
             return anActionCombination;
         }
-        
+
         // backpropagation 
         public bool DoBackpropagation(int itr, bool stoppedDueToEradication, bool useDecisionsAsFeature)
         {
@@ -277,131 +278,118 @@ namespace ComputationLib
             if (DPStates.Count == 0)
                 return false;
 
-            _backPropogationResults[dim] = true;
             // array of errors
-            //_ADPPredictionErrors[dim] = new double[numOfADPStates];
-            double[] thisPredictionErrorsForEligibleStates = new double[0];
+            Errors = new double[DPStates.Count];
 
             // get the last ADP state-decision
             #region last ADP state
-            DPState lastADPStateDecision = (DPState)thisCollectionOfADPStates[numOfADPStates - 1];
+            DPState lastADPStateDecision = DPStates.Last();
             // update the reward to go of the last ADP state-decision
             if (stoppedDueToEradication == true)
-                lastADPStateDecision.CostToGo = lastADPStateDecision.DecisoinIntervalReward;
+                lastADPStateDecision.CostToGo = lastADPStateDecision.DecisionIntervalCost;
             else // not eradicated
             {
                 lastADPStateDecision.CostToGo =
-                    EstimatedTransformedRewardToGo(lastADPStateDecision.SelectedNextPeriodActionCombination, lastADPStateDecision.ObservationFeatureValues);
+                    EstimatedTransformedRewardToGo(
+                        lastADPStateDecision.NextPeriodActionCombination,
+                        lastADPStateDecision.FeatureValues);
             }
             #endregion
 
             // do back propagation for the rest of the state-decisions
             #region calculate other state's reward to go
-            for (int i = thisCollectionOfADPStates.Count - 1; i >= 1; --i)
+            for (int i = DPStates.Count - 1; i >= 1; --i)
             {
-                // get the last ADP state-decision
-                DPState thisADPState = (DPState)thisCollectionOfADPStates[i - 1];
-                DPState nextADPState = (DPState)thisCollectionOfADPStates[i];
-
                 // update the reward to go of this ADP state-decision
-                thisADPState.CostToGo = thisADPState.DecisoinIntervalReward
-                    + discountFactor * nextADPState.CostToGo;
+                DPStates[i - 1].CostToGo = DPStates[i - 1].DecisionIntervalCost + _discountFactor * DPStates[i].CostToGo;
             }
             #endregion
 
             // debugging information
             #region debugging
             _matOf_IfEliggible_Actions_FeatureValues_Responses = new double[0][];
-            foreach (DPState thisADPState in thisCollectionOfADPStates)
+            foreach (DPState thisDPState in DPStates)
             {
-                if (thisADPState.ValidStateToUpdateQFunction)
-                {
-                    double[] thisRowOf_Actions_FeatureValues_Responses = new double[0];
-                    // action code
-                    SupportFunctions.AddToEndOfArray(ref thisRowOf_Actions_FeatureValues_Responses, SupportFunctions.ConvertToBase10FromBase2(thisADPState.SelectedNextPeriodActionCombination));
-                    // feature values
-                    double[] featureValues = thisADPState.ObservationFeatureValues;
-                    for (int i = 0; i < featureValues.Length; i++)
-                        SupportFunctions.AddToEndOfArray(ref thisRowOf_Actions_FeatureValues_Responses, featureValues[i]);
-                    // response
-                    SupportFunctions.AddToEndOfArray(ref thisRowOf_Actions_FeatureValues_Responses, thisADPState.CostToGo);
-                    // concatinate
-                    _matOf_IfEliggible_Actions_FeatureValues_Responses =
-                        SupportFunctions.ConcatJaggedArray(_matOf_IfEliggible_Actions_FeatureValues_Responses, thisRowOf_Actions_FeatureValues_Responses);
-                }
+                double[] thisRowOf_Actions_FeatureValues_Responses = new double[0];
+                // action code
+                SupportFunctions.AddToEndOfArray(
+                    ref thisRowOf_Actions_FeatureValues_Responses, 
+                    SupportFunctions.ConvertToBase10FromBase2(thisDPState.NextPeriodActionCombination));
+                // feature values
+                double[] featureValues = thisDPState.FeatureValues;
+                for (int i = 0; i < featureValues.Length; i++)
+                    SupportFunctions.AddToEndOfArray(ref thisRowOf_Actions_FeatureValues_Responses, featureValues[i]);
+                // response
+                SupportFunctions.AddToEndOfArray(ref thisRowOf_Actions_FeatureValues_Responses, thisDPState.CostToGo);
+                // concatinate
+                _matOf_IfEliggible_Actions_FeatureValues_Responses =
+                    SupportFunctions.ConcatJaggedArray(_matOf_IfEliggible_Actions_FeatureValues_Responses, thisRowOf_Actions_FeatureValues_Responses);
             }
             #endregion
 
             // find errors
             #region errors
             int ADPStateIndex = 0;
-            foreach (DPState thisADPState in thisCollectionOfADPStates)
+            foreach (DPState thisDPState in DPStates)
             {
-                if (thisADPState.ValidStateToUpdateQFunction)
-                {
-                    double transformedObservedRewardToGo = Transform(thisADPState.CostToGo, transformMethod);
+                double transformedObservedRewardToGo = Transform(thisDPState.CostToGo, transformMethod);
 
-                    // find the estimate reward to go
-                    double transformedEstimatedRewardToGo =
-                        EstimatedTransformedRewardToGo(thisADPState.SelectedNextPeriodActionCombination, thisADPState.ObservationFeatureValues);
+                // find the estimate reward to go
+                double transformedEstimatedRewardToGo =
+                    EstimatedTransformedRewardToGo(
+                        thisDPState.NextPeriodActionCombination,
+                        thisDPState.FeatureValues);
 
-                    SupportFunctions.AddToEndOfArray(ref thisPredictionErrorsForEligibleStates, transformedObservedRewardToGo - transformedEstimatedRewardToGo);
-                    ++ADPStateIndex;
-                }
+                SupportFunctions.AddToEndOfArray(ref _errors, transformedObservedRewardToGo - transformedEstimatedRewardToGo);
+                ++ADPStateIndex;
             }
-            Errors[dim] = thisPredictionErrorsForEligibleStates;
             #endregion
 
             // update Q-functions
             #region update q-functions
-            for (int i = thisCollectionOfADPStates.Count - 1; i >= 0; i--)
+            for (int i = DPStates.Count - 1; i >= 0; i--)
             {
                 // get the ADP State
-                DPState thisADPStateDecision = (DPState)thisCollectionOfADPStates[i];
+                DPState thisADPState = DPStates[i];
 
                 // first check if this ADP state can be used to update Q-functions
-                if (thisADPStateDecision.ValidStateToUpdateQFunction)
+                switch (QFunctionApproxMethod)
                 {
-                    int[] switchStatusOfActionsDynamicallyControlled = GetSwitchStatusOfActionsControlledDynamically(thisADPStateDecision.SelectedNextPeriodActionCombination);
-
-                    switch (_qFunctionApproximationMethod)
-                    {
-                        case enumQFunctionApproximationMethod.Q_Approximation:
+                    case EnumQFunctionApproximationMethod.Q_Approximation:
+                        {
+                            QFunctions[SupportFunctions.ConvertToBase10FromBase2(thisADPState.NextPeriodActionCombination)]
+                                .Update(thisADPState.FeatureValues, Transform(thisADPState.CostToGo, transformMethod), itr);
+                        }
+                        break;
+                    case EnumQFunctionApproximationMethod.A_Approximation:
+                        AFunction.Update(
+                            thisADPState.NextPeriodActionCombination,
+                            thisADPState.FeatureValues,
+                            Transform(thisADPState.CostToGo, transformMethod), itr);
+                        break;
+                    case EnumQFunctionApproximationMethod.H_Approximation:
+                        {
+                            for (int a = 0; a < _nOfActions; a++)
                             {
-                                ((QFunction)_colOfQFunctions[SupportFunctions.ConvertToBase10FromBase2(switchStatusOfActionsDynamicallyControlled)])
-                                    .Update(thisADPStateDecision.ObservationFeatureValues, Transform(thisADPStateDecision.CostToGo, transformMethod), itr);
+                                // if this vertex is on
+                                if (thisADPState.NextPeriodActionCombination[a] == 1)
+                                    ((PolynomialQFunction)HFunctions_On[a]).Update(
+                                        thisADPState.FeatureValues,
+                                        Transform(thisADPState.CostToGo, transformMethod), itr);
+                                else // if this vertex is off
+                                    ((PolynomialQFunction)HFunctions_Off[a]).Update(
+                                        thisADPState.FeatureValues,
+                                        Transform(thisADPState.CostToGo, transformMethod), itr);
                             }
-                            break;
-                        case enumQFunctionApproximationMethod.A_Approximation:
-                            _qFunctionApproximationModel_Additive.Update(
-                                switchStatusOfActionsDynamicallyControlled,
-                                thisADPStateDecision.ObservationFeatureValues,
-                                Transform(thisADPStateDecision.CostToGo, transformMethod), itr);
-                            break;
-                        case enumQFunctionApproximationMethod.H_Approximation:
-                            {
-                                for (int a = 0; a < _numOfActionsControlledDynamically; a++)
-                                {
-                                    // if this vertex is on
-                                    if (switchStatusOfActionsDynamicallyControlled[a] == 1)
-                                        ((PolynomialQFunction)_colOfHFunctions_On[a]).Update(
-                                            thisADPStateDecision.ObservationFeatureValues,
-                                            Transform(thisADPStateDecision.CostToGo, transformMethod), itr);
-                                    else // if this vertex is off
-                                        ((PolynomialQFunction)_colOfHFunctions_Off[a]).Update(
-                                            thisADPStateDecision.ObservationFeatureValues,
-                                            Transform(thisADPStateDecision.CostToGo, transformMethod), itr);
-                                }
-                            }
-                            break;
-                    }
+                        }
+                        break;
                 }
             }
             #endregion
 
             return true;
         }
-        
+
         // get selected next period action combination of a dp state
         public int[] GetSelectedNextPeriodActionCombinationOfAnADPState(int ADPStateIndexInCollection)
         {
@@ -588,5 +576,5 @@ namespace ComputationLib
         #endregion
     }
 
-    
+
 }

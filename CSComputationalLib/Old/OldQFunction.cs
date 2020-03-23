@@ -160,70 +160,70 @@ namespace ComputationLib
         }
 
         // minimize using gradient descent method
-        public void MinimizeUsingGradientDescent(EnumLineSearchMethod lineSearchMethod, double[] initialVariableValues, double stepSize, double normOfGradientToStop)
-        {
-            int numOfIterations = 0;
-            double[] currentVar = initialVariableValues;
-            double[] currentGradient; // = new double[_numOfContinuousVariables];
-            // = new double[_numOfContinuousVariables, _numOfContinuousVariables];
-            double[] direction = new double[_numOfContinuousVariables];
-            double[] newVar = new double[_numOfContinuousVariables];
-            double norm = double.MaxValue;
+        //public void MinimizeUsingGradientDescent(EnumLineSearchMethod lineSearchMethod, double[] initialVariableValues, double stepSize, double normOfGradientToStop)
+        //{
+        //    int numOfIterations = 0;
+        //    double[] currentVar = initialVariableValues;
+        //    double[] currentGradient; // = new double[_numOfContinuousVariables];
+        //    // = new double[_numOfContinuousVariables, _numOfContinuousVariables];
+        //    double[] direction = new double[_numOfContinuousVariables];
+        //    double[] newVar = new double[_numOfContinuousVariables];
+        //    double norm = double.MaxValue;
 
-            // calculate the gradient
-            currentGradient = fGradientValue(initialVariableValues);
-            // calculate the norm of gradient
-            norm = LinearAlgebraFunctions.Norm(currentGradient, LinearAlgebraFunctions.enumVectorNorm.L_inf);
+        //    // calculate the gradient
+        //    currentGradient = fGradientValue(initialVariableValues);
+        //    // calculate the norm of gradient
+        //    norm = LinearAlgebraFunctions.Norm(currentGradient, LinearAlgebraFunctions.enumVectorNorm.L_inf);
 
-            // do while error is still too big
-            while (norm >= normOfGradientToStop)
-            {
-                // calculate the new direction
-                switch (lineSearchMethod)
-                {
-                    case EnumLineSearchMethod.SteepestDescent:
-                        {
-                            for (int varIndex = 0; varIndex < _numOfContinuousVariables; varIndex++)
-                                direction[varIndex] = -stepSize * currentGradient[varIndex];
-                        }
-                        break;
-                    case EnumLineSearchMethod.Newton:
-                        {
-                            double[,] currentJacobian = fJacobianValue(currentVar);
-                            while (!LinearAlgebraFunctions.Matrix_IfInvertable(currentJacobian))
-                            {
-                                currentVar[0] += 0.001;
-                                currentJacobian = fJacobianValue(currentVar);
-                            }
-                            double[,] invOfJacubian = LinearAlgebraFunctions.Matrix_Inverse(currentJacobian);
-                            double[] invJTimesG = LinearAlgebraFunctions.Matrix_Multiply(invOfJacubian, currentGradient);
+        //    // do while error is still too big
+        //    while (norm >= normOfGradientToStop)
+        //    {
+        //        // calculate the new direction
+        //        switch (lineSearchMethod)
+        //        {
+        //            case EnumLineSearchMethod.SteepestDescent:
+        //                {
+        //                    for (int varIndex = 0; varIndex < _numOfContinuousVariables; varIndex++)
+        //                        direction[varIndex] = -stepSize * currentGradient[varIndex];
+        //                }
+        //                break;
+        //            case EnumLineSearchMethod.Newton:
+        //                {
+        //                    double[,] currentJacobian = fJacobianValue(currentVar);
+        //                    while (!LinearAlgebraFunctions.Matrix_IfInvertable(currentJacobian))
+        //                    {
+        //                        currentVar[0] += 0.001;
+        //                        currentJacobian = fJacobianValue(currentVar);
+        //                    }
+        //                    double[,] invOfJacubian = LinearAlgebraFunctions.Matrix_Inverse(currentJacobian);
+        //                    double[] invJTimesG = LinearAlgebraFunctions.Matrix_Multiply(invOfJacubian, currentGradient);
 
-                            for (int varIndex = 0; varIndex < _numOfContinuousVariables; varIndex++)
-                                direction[varIndex] = -stepSize * invJTimesG[varIndex];
-                        }
-                        break;
-                }
-                // find a new variable
-                for (int varIndex = 0; varIndex < _numOfContinuousVariables; varIndex++)
-                    newVar[varIndex] = currentVar[varIndex] + direction[varIndex];
+        //                    for (int varIndex = 0; varIndex < _numOfContinuousVariables; varIndex++)
+        //                        direction[varIndex] = -stepSize * invJTimesG[varIndex];
+        //                }
+        //                break;
+        //        }
+        //        // find a new variable
+        //        for (int varIndex = 0; varIndex < _numOfContinuousVariables; varIndex++)
+        //            newVar[varIndex] = currentVar[varIndex] + direction[varIndex];
 
-                // update current variable
-                currentVar = (double[])newVar.Clone();
+        //        // update current variable
+        //        currentVar = (double[])newVar.Clone();
 
-                // calculate the gradient
-                currentGradient = fGradientValue(currentVar);
+        //        // calculate the gradient
+        //        currentGradient = fGradientValue(currentVar);
 
-                // calculate the norm of the gradient
-                norm = LinearAlgebraFunctions.Norm(currentGradient, LinearAlgebraFunctions.enumVectorNorm.L_inf);
+        //        // calculate the norm of the gradient
+        //        norm = LinearAlgebraFunctions.Norm(currentGradient, LinearAlgebraFunctions.enumVectorNorm.L_inf);
 
-                // increment the number of iterations
-                ++numOfIterations;
-            }
+        //        // increment the number of iterations
+        //        ++numOfIterations;
+        //    }
 
-            MinimumX = (double[])newVar.Clone();
-            FuncValueAtMinimumX = fValue(MinimumX);
-            NumOfOptimizationItrs = numOfIterations;
-        }
+        //    MinimumX = (double[])newVar.Clone();
+        //    FuncValueAtMinimumX = fValue(MinimumX);
+        //    NumOfOptimizationItrs = numOfIterations;
+        //}
 
         //// minimize using Nelder-Mead solver
         //public void MinimizeUsingNelderMeadSolver(double[] initialVariableValues)
