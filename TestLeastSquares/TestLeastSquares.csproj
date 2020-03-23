@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{BF1320DF-AADF-45FE-B33A-332AE097FCD9}</ProjectGuid>
+    <ProjectGuid>{E67498AB-C177-4E40-9E13-24A53FE90E25}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>TestStochApproximation</RootNamespace>
-    <AssemblyName>TestStochApproximation</AssemblyName>
+    <RootNamespace>TestLeastSquares</RootNamespace>
+    <AssemblyName>TestLeastSquares</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -32,14 +32,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CSComputationalLib">
-      <HintPath>..\CSComputationalLib\bin\Release\CSComputationalLib.dll</HintPath>
-    </Reference>
     <Reference Include="MathNet.Numerics, Version=4.9.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\MathNet.Numerics.4.9.0\lib\net461\MathNet.Numerics.dll</HintPath>
-    </Reference>
-    <Reference Include="MathNet.Numerics.Data.Text, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MathNet.Numerics.Data.Text.4.0.0\lib\net40\MathNet.Numerics.Data.Text.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -59,6 +53,12 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CSComputationalLib\CSComputationalLib.csproj">
+      <Project>{51d3dca3-0d62-40af-ae84-ea0a79b28346}</Project>
+      <Name>CSComputationalLib</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
