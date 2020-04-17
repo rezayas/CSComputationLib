@@ -94,7 +94,7 @@ namespace ComputationLib
         }
         public void Record(double obs)
         {
-            Record(obs, NumOfRecordings - 1);
+            Record(obs, NumOfRecordings);
         }
         public void Record(double obs, long obsLocationIndex)
         {
