@@ -12,16 +12,16 @@ namespace ComputationLib
     public enum EnumTransformMethod : int
     {
         None = 0,
-        NaturalLog_PositiveArgument = 1,
-        NaturalLog_NegativeArgument = 2,
-        SquaredRoot_PositiveArgument = 3,
-        SquaredRoot_NegativeArgument = 4,
+        Ln_PosArgument = 1,
+        Ln_NegArgument = 2,
+        Sqrt_PosArgument = 3,
+        Sqrt_NegArgument = 4,
     }
-    public enum EnumQFunctionApproximationMethod
+    public enum EnumQFuncApproximationMethod
     {
-        Q_Approximation = 0,
-        A_Approximation = 1,
-        H_Approximation = 2,
+        Q_Approx = 0,
+        A_Approx = 1,
+        H_Approx = 2,
     }
 
     /// <summary>
@@ -50,7 +50,7 @@ namespace ComputationLib
         private readonly int _nOfActions; // n of action combinations = (n of actions)^2        
 
         // approximation models  
-        public EnumQFunctionApproximationMethod QFunctionApproxMethod { get; private set; }
+        public EnumQFuncApproximationMethod QFunctionApproxMethod { get; private set; }
         public List<QFunction> QFunctions { get; private set; }
         public List<QFunction> HFunctions_On { get; private set; }
         public List<QFunction> HFunctions_Off { get; private set; }
@@ -78,7 +78,7 @@ namespace ComputationLib
 
         // set up approximation model
         public void SetUpQFunctionApproximationModel(
-            EnumQFunctionApproximationMethod qFunctionApproximationMethod, EnumTransformMethod transformMethod,
+            EnumQFuncApproximationMethod qFunctionApproximationMethod, EnumTransformMethod transformMethod,
             int nOfFeatures, int polynomialDegree, double l2Penalty = 0)
         {
             QFunctionApproxMethod = qFunctionApproximationMethod;
@@ -86,16 +86,16 @@ namespace ComputationLib
 
             switch (QFunctionApproxMethod)
             {
-                case EnumQFunctionApproximationMethod.Q_Approximation:
+                case EnumQFuncApproximationMethod.Q_Approx:
                     {
                         QFunctions = new List<QFunction>();
                     }
                     break;
-                case EnumQFunctionApproximationMethod.A_Approximation:
+                case EnumQFuncApproximationMethod.A_Approx:
                     {
                     }
                     break;
-                case EnumQFunctionApproximationMethod.H_Approximation:
+                case EnumQFuncApproximationMethod.H_Approx:
                     {
                         HFunctions_Off = new List<QFunction>();
                         HFunctions_On = new List<QFunction>();
@@ -105,7 +105,7 @@ namespace ComputationLib
 
             switch (QFunctionApproxMethod)
             {
-                case EnumQFunctionApproximationMethod.Q_Approximation:
+                case EnumQFuncApproximationMethod.Q_Approx:
                     {
                         for (int i = 0; i < Math.Pow(2, _nOfActions); i++)
                         {
@@ -118,7 +118,7 @@ namespace ComputationLib
                         }
                     }
                     break;
-                case EnumQFunctionApproximationMethod.A_Approximation:
+                case EnumQFuncApproximationMethod.A_Approx:
                     {
                         AFunction = new PolynomialQFunction(
                             name: "Additive approximation function",
@@ -128,7 +128,7 @@ namespace ComputationLib
                             l2Penalty: l2Penalty);
                     }
                     break;
-                case EnumQFunctionApproximationMethod.H_Approximation:
+                case EnumQFuncApproximationMethod.H_Approx:
                     {
                         // set up H functions for actions that are guided by the policy
                         for (int a = 0; a < _nOfActions; a++)
@@ -169,7 +169,7 @@ namespace ComputationLib
 
             switch (QFunctionApproxMethod)
             {
-                case EnumQFunctionApproximationMethod.Q_Approximation:
+                case EnumQFuncApproximationMethod.Q_Approx:
                     #region Q-Approximation
                     {
                         int actionCombIndex = 0;
@@ -190,7 +190,7 @@ namespace ComputationLib
                     }
                     break;
                 #endregion
-                case EnumQFunctionApproximationMethod.A_Approximation:
+                case EnumQFuncApproximationMethod.A_Approx:
                     #region Additive-Approximation
                     {
                         double min = double.MaxValue, qValue = 0;
@@ -210,7 +210,7 @@ namespace ComputationLib
                     }
                     break;
                 #endregion
-                case EnumQFunctionApproximationMethod.H_Approximation:
+                case EnumQFuncApproximationMethod.H_Approx:
                     #region H-Approximation
                     {
                         // start with assuming that all vertices are in the optimal set (1: if yes, 0: if no)
@@ -355,19 +355,19 @@ namespace ComputationLib
                 // first check if this ADP state can be used to update Q-functions
                 switch (QFunctionApproxMethod)
                 {
-                    case EnumQFunctionApproximationMethod.Q_Approximation:
+                    case EnumQFuncApproximationMethod.Q_Approx:
                         {
                             QFunctions[SupportFunctions.ConvertToBase10FromBase2(thisADPState.NextPeriodActionCombination)]
                                 .Update(thisADPState.FeatureValues, Transform(thisADPState.CostToGo, transformMethod), itr);
                         }
                         break;
-                    case EnumQFunctionApproximationMethod.A_Approximation:
+                    case EnumQFuncApproximationMethod.A_Approx:
                         AFunction.Update(
                             thisADPState.NextPeriodActionCombination,
                             thisADPState.FeatureValues,
                             Transform(thisADPState.CostToGo, transformMethod), itr);
                         break;
-                    case EnumQFunctionApproximationMethod.H_Approximation:
+                    case EnumQFuncApproximationMethod.H_Approx:
                         {
                             for (int a = 0; a < _nOfActions; a++)
                             {
@@ -423,14 +423,14 @@ namespace ComputationLib
             int[,] result = new int[0, 0];
             switch (QFunctionApproxMethod)
             {
-                case EnumQFunctionApproximationMethod.Q_Approximation:
+                case EnumQFuncApproximationMethod.Q_Approx:
                     //TODO: update GetQFunctionPolynomialTerms function for Q-Approximation
                     result = new int[1, 1];// _qFunctionApproximationModel_Additive.RegressionTermDegrees;
                     break;
-                case EnumQFunctionApproximationMethod.A_Approximation:
+                case EnumQFuncApproximationMethod.A_Approx:
                     result = (int[,])AFunction.RegressionTermDegrees.Clone();
                     break;
-                case EnumQFunctionApproximationMethod.H_Approximation:
+                case EnumQFuncApproximationMethod.H_Approx:
                     //TODO: update GetQFunctionPolynomialTerms function for H-Approximation
                     result = new int[1, 1];// _qFunctionApproximationModel_Additive.RegressionTermDegrees;
                     break;
@@ -443,14 +443,14 @@ namespace ComputationLib
             double[] result = new double[0];
             switch (QFunctionApproxMethod)
             {
-                case EnumQFunctionApproximationMethod.Q_Approximation:
+                case EnumQFuncApproximationMethod.Q_Approx:
                     //TODO: update GetQFunctionCoefficientEstimates function for Q-Approximation
                     result = new double[1];// _qFunctionApproximationModel_Additive.CoeffientEstimates;
                     break;
-                case EnumQFunctionApproximationMethod.A_Approximation:
+                case EnumQFuncApproximationMethod.A_Approx:
                     result = (double[])AFunction.Coefficients.Clone();
                     break;
-                case EnumQFunctionApproximationMethod.H_Approximation:
+                case EnumQFuncApproximationMethod.H_Approx:
                     //TODO: update GetQFunctionCoefficientEstimates function for H-Approximation
                     result = new double[1];// _qFunctionApproximationModel_Additive.CoeffientEstimates;
                     break;
@@ -462,14 +462,14 @@ namespace ComputationLib
         {
             switch (QFunctionApproxMethod)
             {
-                case EnumQFunctionApproximationMethod.Q_Approximation:
+                case EnumQFuncApproximationMethod.Q_Approx:
 
                     //TODO: update UpdateQFunctionCoefficients function for Q-Approximation
                     break;
-                case EnumQFunctionApproximationMethod.A_Approximation:
+                case EnumQFuncApproximationMethod.A_Approx:
                     AFunction.UpdateCoefficients(coefficients);
                     break;
-                case EnumQFunctionApproximationMethod.H_Approximation:
+                case EnumQFuncApproximationMethod.H_Approx:
                     //TODO: update UpdateQFunctionCoefficients function for H-Approximation
                     //_qFunctionApproximationModel_Additive.UpdateCoefficients(coefficients);
                     break;
@@ -494,16 +494,16 @@ namespace ComputationLib
                 case EnumTransformMethod.None:
                     result = value;
                     break;
-                case EnumTransformMethod.NaturalLog_PositiveArgument:
+                case EnumTransformMethod.Ln_PosArgument:
                     result = Math.Log(Math.Max(0, value) + 1);
                     break;
-                case EnumTransformMethod.NaturalLog_NegativeArgument:
+                case EnumTransformMethod.Ln_NegArgument:
                     result = Math.Log(Math.Max(0, -value) + 1);
                     break;
-                case EnumTransformMethod.SquaredRoot_PositiveArgument:
+                case EnumTransformMethod.Sqrt_PosArgument:
                     result = Math.Sqrt(Math.Max(0, value));
                     break;
-                case EnumTransformMethod.SquaredRoot_NegativeArgument:
+                case EnumTransformMethod.Sqrt_NegArgument:
                     result = Math.Sqrt(Math.Max(0, -value));
                     break;
             }
@@ -518,16 +518,16 @@ namespace ComputationLib
                 case EnumTransformMethod.None:
                     result = transformedValue;
                     break;
-                case EnumTransformMethod.NaturalLog_PositiveArgument:
+                case EnumTransformMethod.Ln_PosArgument:
                     result = Math.Max(0, Math.Exp(transformedValue) - 1);
                     break;
-                case EnumTransformMethod.NaturalLog_NegativeArgument:
+                case EnumTransformMethod.Ln_NegArgument:
                     result = Math.Min(0, 1 - Math.Exp(transformedValue));
                     break;
-                case EnumTransformMethod.SquaredRoot_PositiveArgument:
+                case EnumTransformMethod.Sqrt_PosArgument:
                     result = Math.Pow(transformedValue, 2);
                     break;
-                case EnumTransformMethod.SquaredRoot_NegativeArgument:
+                case EnumTransformMethod.Sqrt_NegArgument:
                     result = -Math.Pow(transformedValue, 2);
                     break;
             }
@@ -543,18 +543,18 @@ namespace ComputationLib
             // find the estimate reward to go
             switch (QFunctionApproxMethod)
             {
-                case EnumQFunctionApproximationMethod.Q_Approximation:
+                case EnumQFuncApproximationMethod.Q_Approx:
                     {
                         int actionCombIndex = SupportFunctions.ConvertToBase10FromBase2(nextPeriodActionCombination);
                         estimatedTransformedRewardToGo = QFunctions[actionCombIndex].fValue(featureValues);
                     }
                     break;
-                case EnumQFunctionApproximationMethod.A_Approximation:
+                case EnumQFuncApproximationMethod.A_Approx:
                     {
                         estimatedTransformedRewardToGo = AFunction.fValue(nextPeriodActionCombination, featureValues);
                     }
                     break;
-                case EnumQFunctionApproximationMethod.H_Approximation:
+                case EnumQFuncApproximationMethod.H_Approx:
                     {
                         for (int i = 0; i < _nOfActions; i++)
                         {

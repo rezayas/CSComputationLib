@@ -123,6 +123,7 @@ namespace ComputationLib
         public List<Vector<double>> Itr_x { get; private set; } = new List<Vector<double>>();
         public List<Vector<double>> Itr_dx_over_x { get; private set; } = new List<Vector<double>>();
         public List<double> Itr_f { get; private set; } = new List<double>();
+        public List<double> Itr_DfNorm { get; private set; } = new List<double>();
         public List<Vector<double>> Itr_Df { get; private set; } = new List<Vector<double>>();
         public List<double> Itr_step_Df { get; private set; } = new List<double>();
         public List<double> Itr_step_GH { get; private set; } = new List<double>();
@@ -152,7 +153,7 @@ namespace ComputationLib
         /// instead of being calculated by the algorithm </param>
         /// <param name="ifTwoSidedDerivative"> set to true if two-sided derivative (instead of one-sided) should be used </param>
         public void Minimize(int nItrs, int nLastItrsToAve, Vector<double> x0, Vector<double> xScale = null,
-            bool modelProvidesDerivatives = false, bool ifTwoSidedDerivative = true)
+            bool modelProvidesDerivatives = false, bool ifTwoSidedDerivative = true, bool stopIfNoMovement=true)
         {
             double f;
             Vector<double> dx_over_x = Vector<double>.Build.Dense(x0.Count());
@@ -226,7 +227,8 @@ namespace ComputationLib
                 }
 
                 // normalize derivative
-                Vector<double> nDf = Df.Normalize(p: 2);
+                Vector<double> Df_normalized = Df.Normalize(p: 2);
+                double Df_norm = Df_normalized.Norm(p:2);
                 
                 // find step size
                 double step_GH = _stepSize_GH.GetValue(itr);
@@ -239,27 +241,40 @@ namespace ComputationLib
                 Itr_dx_over_x.Add(dx_over_x.PointwiseAbs());
                 Itr_x.Add(x);
                 Itr_f.Add(f);
-                Itr_Df.Add(nDf);
+                Itr_Df.Add(Df_normalized);
+                Itr_DfNorm.Add(Df_norm);
                 Itr_step_Df.Add(step_Df);
                 Itr_step_GH.Add(step_GH);                
 
                 // find a new x: x_new = x - stepSize*f'(x)*scale
                 Vector<double> tempX = Vector<double>.Build.Dense(x.Count);
                 for (int i = 0; i < x.Count; i++)
-                    tempX[i] = x[i] - step_GH * nDf[i] * xScale[i];
+                    tempX[i] = x[i] - step_GH * Df_normalized[i] * xScale[i];
 
                 x = tempX;
+
+                // find the average size of derivative over the last n iterations
+                if (itr >= nLastItrsToAve - 1)
+                {
+                    double sum = 0;
+                    for (int i = itr; i > itr - nLastItrsToAve; i--)
+                    {
+                        sum += Itr_DfNorm[i];
+                    }
+                    if (sum == 0) 
+                        break;
+                }
             }
 
             // optimal x and optimal value of f is the average of last nLastItrsToAve iterations  
             double fSum = 0;
             Vector<double> xSum = Vector<double>.Build.Dense(x0.Count);
             Vector<double> dx_over_x_Sum = Vector<double>.Build.Dense(x0.Count);
-            for (int itr = nItrs; itr > nItrs - nLastItrsToAve; itr--)
+            for (int i = Itr_i.Count - 1; i > Itr_i.Count - 1 - nLastItrsToAve; i--)
             {
-                fSum += Itr_f[itr - 1];
-                xSum += Itr_x[itr - 1];
-                dx_over_x_Sum += Itr_dx_over_x[itr - 1];
+                fSum += Itr_f[i];
+                xSum += Itr_x[i];
+                dx_over_x_Sum += Itr_dx_over_x[i];
             }
             xStar = xSum / nLastItrsToAve;
             dx_over_x_ave = dx_over_x_Sum / nLastItrsToAve;
@@ -325,6 +340,10 @@ namespace ComputationLib
         public double Get_c0()
         {
             return _stepSize_Df.c0;
+        }
+        public double GetEffectiveNumOfItrs()
+        {
+            return Itr_i.Count;
         }
     }
 
@@ -436,7 +455,7 @@ namespace ComputationLib
 
         public string[,] GetSummary(int f_digits, int x_digits)
         {
-            string[,] summary = new string[listStochApprox.Count, 6];
+            string[,] summary = new string[listStochApprox.Count, 7];
 
             // sort the algorithms in increasing order of f
             List<StochasticApproximation> sorted = listStochApprox.OrderBy(s => s.fStar).ToList();
@@ -447,13 +466,15 @@ namespace ComputationLib
                 summary[i, 0] = stocApprx.Get_a0().ToString();
                 summary[i, 1] = stocApprx.Get_b().ToString();
                 summary[i, 2] = stocApprx.Get_c0().ToString();
-                summary[i, 3] = Math.Round(stocApprx.fStar, f_digits).ToString();
+                summary[i, 3] = stocApprx.GetEffectiveNumOfItrs().ToString();
+                summary[i, 4] = Math.Round(stocApprx.fStar, f_digits).ToString();
 
                 double[] xStar = stocApprx.xStar.ToArray();
                 double[] dxOverX = stocApprx.dx_over_x_ave.ToArray();
 
-                summary[i, 4] = string.Join(",", xStar.Select(x => Math.Round(x, x_digits)).ToArray());
-                summary[i, 5] = string.Join(",", dxOverX.Select(x => Math.Round(x, x_digits)).ToArray());
+                summary[i, 5] = string.Join(",", xStar.Select(x => Math.Round(x, x_digits)).ToArray());
+                summary[i, 6] = string.Join(",", dxOverX.Select(x => Math.Round(x, x_digits)).ToArray());
+                
                 i++;
             }
 
